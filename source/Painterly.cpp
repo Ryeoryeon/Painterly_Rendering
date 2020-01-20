@@ -7,7 +7,7 @@
 
 std::vector<layer> stroke::Painterly_initialize()
 {
-	//std::vector<layer>layer_list; (Àá±ñ ³»°¡ ÀÌ°É ¿Ö ³Ö¾úÁö..?)
+	//std::vector<layer>layer_list; (ì ê¹ ë‚´ê°€ ì´ê±¸ ì™œ ë„£ì—ˆì§€..?)
 
 	/*
 	int brush_size;
@@ -22,18 +22,18 @@ std::vector<layer> stroke::Painterly_initialize()
 		int test_brush;
 		double test_fg;
 
-		std::cout << i << "¹øÂ° ·¹ÀÌ¾î, ºê·¯½Ã »çÀÌÁî ÀÔ·Â : ";
+		std::cout << i << "ë²ˆì§¸ ë ˆì´ì–´, ë¸ŒëŸ¬ì‹œ ì‚¬ì´ì¦ˆ ì…ë ¥ : ";
 		std::cin >> test_brush;
-		//layer_list[i].brush_size = test_brush; // ´ëÀÔÀ» ÇÏ·Á°í ÇÏ¸é ¾ÈµÈ´Ù..¿ÖÁö?
+		//layer_list[i].brush_size = test_brush; // ëŒ€ì…ì„ í•˜ë ¤ê³  í•˜ë©´ ì•ˆëœë‹¤..ì™œì§€?
 		//put_brushsize(i, test_brush);
 		std::cin.ignore(100, '\n');
 
 		/*
-		±×¸®µåÀÇ »çÀÌÁî. fg°¡ 1ÀÌ¸é ºê·¯½ÃÀÇ ¹İÁö¸§ Å©±â¸¸Å­.
-		¸¸¾à 1º¸´Ù ÀÛÀ¸¸é ½ºÆ®·ÎÅ©°¡ ±×¸®µå ¹ÛÀ¸·Î »ßÁ®³ª¿À°í Å©¸é ±× ¹İ´ëÀÓ.
+		ê·¸ë¦¬ë“œì˜ ì‚¬ì´ì¦ˆ. fgê°€ 1ì´ë©´ ë¸ŒëŸ¬ì‹œì˜ ë°˜ì§€ë¦„ í¬ê¸°ë§Œí¼.
+		ë§Œì•½ 1ë³´ë‹¤ ì‘ìœ¼ë©´ ìŠ¤íŠ¸ë¡œí¬ê°€ ê·¸ë¦¬ë“œ ë°–ìœ¼ë¡œ ì‚ì ¸ë‚˜ì˜¤ê³  í¬ë©´ ê·¸ ë°˜ëŒ€ì„.
 		*/
 
-		std::cout << i << "¹øÂ° ·¹ÀÌ¾î, f_g º¯¼ö°ª ÀÔ·Â : (Á¡Á¡ ÀÛ¾ÆÁ®¾ß ÇÑ´Ù)";
+		std::cout << i << "ë²ˆì§¸ ë ˆì´ì–´, f_g ë³€ìˆ˜ê°’ ì…ë ¥ : (ì ì  ì‘ì•„ì ¸ì•¼ í•œë‹¤)";
 		std::cin >> test_fg;
 		//put_fg(i, test_fg);
 		//std::cin >> layer_list[i].f_g;
@@ -41,38 +41,42 @@ std::vector<layer> stroke::Painterly_initialize()
 
 		//layer_list[i].grid_size = layer_list[i].brush_size * layer_list[i].f_g;
 
-		push_back(test_brush, test_fg, test_brush*test_fg);
+		if (test_brush * test_fg < 1)
+			push_back(test_brush, test_fg, 1); // ê·¸ë¦¬ë“œ ì‚¬ì´ì¦ˆê°€ 0ì´ ë˜ëŠ” ê²ƒì„ ë°©ì§€.
+
+		else
+			push_back(test_brush, test_fg, test_brush * test_fg);
 	}
 
-	//¿ø·¡´Â ÇÑ²¨¹ø¿¡ ±¸Á¶Ã¼ º¤ÅÍ¸¦ push_backÀ¸·Î ¹Ş¾ÆÁÖ·Á°í ÇßÀ¸³ª ¹öÆÛ¹®Á¦ ¶§¹®¿¡ ¼öÁ¤
+	//ì›ë˜ëŠ” í•œêº¼ë²ˆì— êµ¬ì¡°ì²´ ë²¡í„°ë¥¼ push_backìœ¼ë¡œ ë°›ì•„ì£¼ë ¤ê³  í–ˆìœ¼ë‚˜ ë²„í¼ë¬¸ì œ ë•Œë¬¸ì— ìˆ˜ì •
 	return layer_list;
 }
 
 int stroke::calculate_margin(int layer, int length)
 {
-	if (layer_list[layer].grid_size == 0) // ±×³É ¿¹¿ÜÃ³¸® ÇÏÀÚ.
+	if (layer_list[layer].grid_size == 0) // ê·¸ëƒ¥ ì˜ˆì™¸ì²˜ë¦¬ í•˜ì.
 		layer_list[layer].grid_size = 1;
 
-	int grid_number = length / layer_list[layer].grid_size; // ±×¸®µåÀÇ °³¼ö
+	int grid_number = length / layer_list[layer].grid_size; // ê·¸ë¦¬ë“œì˜ ê°œìˆ˜
 	int index = (length - (grid_number * (int)layer_list[layer].grid_size)) / 2;
 	return index;
 }
 
-void stroke::paint(int T, cv::Mat canvas, const cv::Mat reference, std::vector<layer> layer_list)
+void stroke::paint(int T, cv::Mat & canvas, const cv::Mat & reference, std::vector<layer> & layer_list)
 {
-	//°¡Àå Å«! ºê·¯½ÃºÎÅÍ ½ÇÇàÇØ¾ßÇÔ (¾Æ¸¶µµ?)
-	//³ª´Â °¡Àå Å« ºê·¯½Ã°¡ Ã¹ ¹øÂ° ·¹ÀÌ¾î¿¡ ÀúÀåµÇ´Â °ÍÀ» °¡Á¤ÇØ ÄÚµå¸¦ Â®À½
-	//ÈÄ¿¡ ¼öÁ¤ÇÒ ¿¹Á¤
+	//ê°€ì¥ í°! ë¸ŒëŸ¬ì‹œë¶€í„° ì‹¤í–‰í•´ì•¼í•¨ (ì•„ë§ˆë„?)
+	//ë‚˜ëŠ” ê°€ì¥ í° ë¸ŒëŸ¬ì‹œê°€ ì²« ë²ˆì§¸ ë ˆì´ì–´ì— ì €ì¥ë˜ëŠ” ê²ƒì„ ê°€ì •í•´ ì½”ë“œë¥¼ ì§°ìŒ
+	//í›„ì— ìˆ˜ì •í•  ì˜ˆì •
 
-		//·¹ÀÌ¾î 0ÀÇ °æ¿ì
-		//ºê·¯½Ã »çÀÌÁî 3 f_g´Â 1.5·Î ÀÔ·ÂÇÔ Áï ±×¸®µå »çÀÌÁî´Â 4.5
+		//ë ˆì´ì–´ 0ì˜ ê²½ìš°
+		//ë¸ŒëŸ¬ì‹œ ì‚¬ì´ì¦ˆ 3 f_gëŠ” 1.5ë¡œ ì…ë ¥í•¨ ì¦‰ ê·¸ë¦¬ë“œ ì‚¬ì´ì¦ˆëŠ” 4.5
 
 	int width = canvas.cols;
 	int height = canvas.rows;
 
 	std::default_random_engine r(0);
 
-	//°¡Àå Å« ¿øºÎÅÍ ÀÛÀº ¿ø ¼ø¼­´ë·Î µ¹¾Æ°¡¾ß ÇÑ´Ù.
+	//ê°€ì¥ í° ì›ë¶€í„° ì‘ì€ ì› ìˆœì„œëŒ€ë¡œ ëŒì•„ê°€ì•¼ í•œë‹¤.
 	for (int i = 0; i < layer_list.size(); i++)
 	{
 
@@ -86,23 +90,24 @@ void stroke::paint(int T, cv::Mat canvas, const cv::Mat reference, std::vector<l
 		{
 			for (int y = margin_y; y < height - margin_y; y += (int)layer_list[i].grid_size)
 			{
-				//±Ù¹æÀÇ ¿¡·¯ ´õÇÏ±â (x,y)
+				//ê·¼ë°©ì˜ ì—ëŸ¬ ë”í•˜ê¸° (x,y)
 				double area_error = 0;
 
-				//ÀÓ½Ã °ø°£¿¡ ´ëÇÑ ÀÌÁß º¤ÅÍ ÇÒ´ç
-				//¼¾ÅÍ¸¦ ±âÁØÀ¸·Î grid_size/2¸¸Å­ÀÇ ±æÀÌ¾¿ ÀÖÀ¸´Ï±î. (¸¸ÀÏ grid_size°¡ È¦¼ö¸é ¹ö¸²ÇØÁà¾ß ÇÏ´Ï±î Àú·¸°Ô ÇÔ)
-				//ÀÓ½Ã °ø°£¿¡ ´ëÇÑ Å©±â¸¦ ±×³É grid*grid·Î ÀâÀº°Å != (³í¹®¿¡ ¾²¿©ÀÖ´Â´ë·Î)¼¾ÅÍ¸¦ ±âÁØÀ¸·Î Àú·¸°Ô ÀâÀº°Å
+				//ì„ì‹œ ê³µê°„ì— ëŒ€í•œ ì´ì¤‘ ë²¡í„° í• ë‹¹
+				//ì„¼í„°ë¥¼ ê¸°ì¤€ìœ¼ë¡œ grid_size/2ë§Œí¼ì˜ ê¸¸ì´ì”© ìˆìœ¼ë‹ˆê¹Œ. (ë§Œì¼ grid_sizeê°€ í™€ìˆ˜ë©´ ë²„ë¦¼í•´ì¤˜ì•¼ í•˜ë‹ˆê¹Œ ì €ë ‡ê²Œ í•¨)
+				//ì„ì‹œ ê³µê°„ì— ëŒ€í•œ í¬ê¸°ë¥¼ ê·¸ëƒ¥ grid*gridë¡œ ì¡ì€ê±° != (ë…¼ë¬¸ì— ì“°ì—¬ìˆëŠ”ëŒ€ë¡œ)ì„¼í„°ë¥¼ ê¸°ì¤€ìœ¼ë¡œ ì €ë ‡ê²Œ ì¡ì€ê±°
 
-				int temp_area_length = 2 * (layer_list[i].grid_size / (double)2) + 1; // ¹«Á¶°Ç È¦¼ö, ±âº»°ª´ë·Î¶ó¸é 5
+				int temp_area_length = 2 * (layer_list[i].grid_size / 2) + 1; // ë¬´ì¡°ê±´ í™€ìˆ˜, ê¸°ë³¸ê°’ëŒ€ë¡œë¼ë©´ 5 (ì—¬ê¸°ì„œ ë”ë¸” 2ë¡œ ë‚˜ëˆ„ê²Œ ë˜ë©´ ì§ìˆ˜ê°€ ë‚˜ì˜¤ê²Œ ë  ìˆ˜ë„ ìˆìŒ.)
 
 				temp_area.assign(temp_area_length, std::vector<int>(temp_area_length, 0));
 				int RGB_diff = 0;
 
-				if (temp_area_length <= 1) // ±×·±µ¥ ¹«Á¶°Ç 1ÀÌ°ÚÁö. @+1ÀÌ´Ï±î.
+				//ê·¸ë¦¬ë“œê°€ í•œì¹¸ì¼ ë•Œ
+				if (temp_area_length <= 1) // ê·¸ëŸ°ë° ifê°€ ì„±ë¦½ë˜ë©´ ë¬´ì¡°ê±´ 1ì´ê² ì§€. @+1ì´ë‹ˆê¹Œ.
 				{
-					//grid_size/(double)2°¡ 0ÀÏ ¶§ °¡´ÉÇÏ´Ù.
-					//ÀÌ ¶§´Â ¾î¶»°Ô ¿¹¿ÜÃ³¸®¸¦ ÇÏÁö?
-					//¾îÂ·µç ÀÓ½Ã °ø°£ÀÌ ÇÑÄ­ÀÌ¶ó´Â °Å´Ï±î ±× Ä­¿¡ ´ëÇØ¼­¸¸ ¿À·ù ÇÕÀ» ÇÏ¸é µÇ´Â °Å ¾Æ´Ò±î?
+					//grid_size/(double)2ê°€ 0ì¼ ë•Œ ê°€ëŠ¥í•˜ë‹¤.
+					//ì´ ë•ŒëŠ” ì–´ë–»ê²Œ ì˜ˆì™¸ì²˜ë¦¬ë¥¼ í•˜ì§€?
+					//ì–´ì¨Œë“  ì„ì‹œ ê³µê°„ì´ í•œì¹¸ì´ë¼ëŠ” ê±°ë‹ˆê¹Œ ê·¸ ì¹¸ì— ëŒ€í•´ì„œë§Œ ì˜¤ë¥˜ í•©ì„ í•˜ë©´ ë˜ëŠ” ê±° ì•„ë‹ê¹Œ?
 
 					for (int i = 0; i < 3; i++)
 					{
@@ -114,29 +119,32 @@ void stroke::paint(int T, cv::Mat canvas, const cv::Mat reference, std::vector<l
 					area_error = RGB_diff;
 				}
 
+				//ê·¸ë¦¬ë“œê°€ í•œì¹¸ì´ ì•„ë‹ ë•Œ (ê·¸ ì´ìƒì¼ ë•Œ)
 				else
 				{
-					int temp_divide_two = (temp_area_length - 1) / 2; // °ÅÀÇ ¹«Á¶°Ç Â¦¼ö, ±×³É ÀÌ·¸°Ô ÇØµµ µÉµí.
+					int temp_divide_two = (temp_area_length - 1) / 2; // ì§ìˆ˜/2. temp_area_lengthì—ì„œ (double)2ë¡œ ë‚˜ëˆ„ê²Œ ë˜ë©´ lengthê°€ ì§ìˆ˜ê°€ ë‚˜ì˜¤ëŠ” ê²½ìš°ê°€ ìƒê²¨ ëª¨ìˆœ ë°œìƒ ê°€ëŠ¥.
+					int index_x = x - temp_divide_two;
+					int index_y = y - temp_divide_two;
 
-					//ÀÓ½Ã °ø°£ ÀüÃ¼¿¡ ´ëÇØ Äµ¹ö½º¿Í ºí·¯ ÀÌ¹ÌÁö¿¡ ´ëÇÑ R,G,B°ª Â÷ÀÌ¸¦ ±¸ÇØ¾ß ÇÑ´Ù.
-					for (int j = x - (temp_divide_two); j <= x + (temp_divide_two); j++) // µîÈ£ ºÙÀÌ´Â°Ô ¸Â´Âµí
+					//ì„ì‹œ ê³µê°„ ì „ì²´ì— ëŒ€í•´ ìº”ë²„ìŠ¤ì™€ ë¸”ëŸ¬ ì´ë¯¸ì§€ì— ëŒ€í•œ R,G,Bê°’ ì°¨ì´ë¥¼ êµ¬í•´ì•¼ í•œë‹¤.
+					for (int j = x - (temp_divide_two); j <= x + (temp_divide_two); j++) // ë“±í˜¸ ë¶™ì´ëŠ”ê²Œ ë§ëŠ”ë“¯
 					{
 
 						for (int k = y - (temp_divide_two); k <= y + (temp_divide_two); k++)
 						{
-							for (int l = 0; l < 3; l++) // R,G,B´Â ¸ğµÎ ¼¼ °³ÀÌ¹Ç·Î
+							for (int l = 0; l < 3; l++) // R,G,BëŠ” ëª¨ë‘ ì„¸ ê°œì´ë¯€ë¡œ
 							{
 								int canvas_color = canvas.at<cv::Vec3b>(y, x)[l];
 								int reference_color = reference.at<cv::Vec3b>(y, x)[l];
 								RGB_diff += difference(canvas_color, reference_color);
 							}
-
-							temp_area[j+temp_divide_two][k+temp_divide_two] += RGB_diff;
+							
+							temp_area[j - (index_x)][k - (index_y)] += RGB_diff;
 
 						}
 					}
 
-					area_error += (RGB_diff / (pow(temp_area_length, 2))); // ´Ü¼øÈ÷ grid_size^¸¦ »©¸é ¾ÈµÉ°Í°°À½
+					area_error += (RGB_diff / (pow(temp_area_length, 2))); // ë‹¨ìˆœíˆ grid_size^2ë¥¼ ë¹¼ë©´ ì•ˆë ê²ƒê°™ìŒ.
 				}
 
 				if (area_error <= T)
@@ -146,27 +154,39 @@ void stroke::paint(int T, cv::Mat canvas, const cv::Mat reference, std::vector<l
 
 				else
 				{
-					//ÀÓ½Ã °ø°£ ÀüÃ¼¿¡ ´ëÇØ °¡Àå Å« ¿¡·¯¸¦ ±¸ÇØ¾ß ÇÑ´Ù.
+					//ì„ì‹œ ê³µê°„ ì „ì²´ì— ëŒ€í•´ ê°€ì¥ í° ì—ëŸ¬ë¥¼ êµ¬í•´ì•¼ í•œë‹¤.
 
-					cv::Point_<int>biggest_error (0,0);
-					//std::cout << temp_area.size() << '\n';
-					for (int j = 0; j < temp_area.size(); j++)
+					if(temp_area_length==1)
 					{
-						for (int k = 0; k < temp_area.size(); k++)
-						{
-							if (j == 0 && k == 0)
-								continue;
-
-							else if (temp_area[biggest_error.x][biggest_error.y] < temp_area[j][k])
-							{
-								biggest_error.x = j;
-								biggest_error.y = k;
-							}
-
-						}
+						cv::Point_<int>biggest_error(x, y);
+						new_stroke_list.push_back(biggest_error);
 					}
 
-					/* (»ı°¢ÇØº¸´Ï ¹è¿­ÀÇ ÀÎµ¦½º°¡ À½¼ö°¡ µÇ³×?)
+
+					else
+					{
+						cv::Point_<int>biggest_error(0, 0);
+						//std::cout << temp_area.size() << '\n';
+						for (int j = 0; j < temp_area.size(); j++)
+						{
+							for (int k = 0; k < temp_area.size(); k++)
+							{
+								if (j == 0 && k == 0)
+									continue;
+
+								else if (temp_area[biggest_error.x][biggest_error.y] < temp_area[j][k])
+								{
+									biggest_error.x = j;
+									biggest_error.y = k;
+								}
+
+							}
+						}
+
+						new_stroke_list.push_back(biggest_error);
+					}
+
+					/* (ìƒê°í•´ë³´ë‹ˆ ë°°ì—´ì˜ ì¸ë±ìŠ¤ê°€ ìŒìˆ˜ê°€ ë˜ë„¤?)
 					for (int j = x - (temp_divide_two); j < x + (temp_divide_two); j++)
 					{
 						for (int k = y - (temp_divide_two); k < y + (temp_divide_two); k++)
@@ -175,28 +195,23 @@ void stroke::paint(int T, cv::Mat canvas, const cv::Mat reference, std::vector<l
 							{
 								continue;
 							}
-
 							else if (temp_area[j][k])
 							{
 								biggest_error.x = j;
 								biggest_error.y = k;
 							}
-
 						}
 					}
 					*/
-
-
-					new_stroke_list.push_back(biggest_error);
-
 				}
 			}
+
 		}
 
-		//·¹ÀÌ¾î ÇÏ³ª ³¡³¯ ¶§ ¸¶´Ù new_stroke_list¿¡ ÀúÀåµÈ ½ºÆ®·ÎÅ©µéÀ» ·£´ıÇÑ ¼ø¼­´ë·Î Ä¥ÇÏ±â
-		//ÀÏ´Ü ·£´ıÀº ±¸Çö ¾ÈÇßÀ½ ÀÌ°Íµµ ÇØ¾ßÇÔ!!
+		//ë ˆì´ì–´ í•˜ë‚˜ ëë‚  ë•Œ ë§ˆë‹¤ new_stroke_listì— ì €ì¥ëœ ìŠ¤íŠ¸ë¡œí¬ë“¤ì„ ëœë¤í•œ ìˆœì„œëŒ€ë¡œ ì¹ í•˜ê¸°
+		//ì¼ë‹¨ ëœë¤ì€ êµ¬í˜„ ì•ˆí–ˆìŒ ì´ê²ƒë„ í•´ì•¼í•¨!!
 
-		std::cout << i + 1 << "¹øÂ° ·¹ÀÌ¾î ½ºÆ®·ÎÅ© ±¸¼º ¿Ï·á" << '\n';
+		std::cout << i + 1 << "ë²ˆì§¸ ë ˆì´ì–´ ìŠ¤íŠ¸ë¡œí¬ êµ¬ì„± ì™„ë£Œ" << '\n';
 
 		for (int u = 0; u < new_stroke_list.size(); u++)
 		{
@@ -204,11 +219,11 @@ void stroke::paint(int T, cv::Mat canvas, const cv::Mat reference, std::vector<l
 			int ref_color_G = reference.at<cv::Vec3b>(new_stroke_list[u].x, new_stroke_list[u].y)[1];
 			int ref_color_R = reference.at<cv::Vec3b>(new_stroke_list[u].x, new_stroke_list[u].y)[2];
 
-			cv::circle(canvas, new_stroke_list[u], layer_list[i].brush_size, (ref_color_B, ref_color_G, ref_color_R), -1); // µÎ²²¿¡ -1À» ÀÔ·ÂÇÏ¸é ¿ø Ã¤¿ì±â
+			cv::circle(canvas, new_stroke_list[u], layer_list[i].brush_size, (ref_color_B, ref_color_G, ref_color_R), -1); // ë‘ê»˜ì— -1ì„ ì…ë ¥í•˜ë©´ ì› ì±„ìš°ê¸°
 		}
 
-		std::cout << i + 1 << "¹øÂ° ·¹ÀÌ¾îÄ¥ÇÏ±â±îÁö ¿Ï·á" << '\n';
+		std::cout << i + 1 << "ë²ˆì§¸ ë ˆì´ì–´ì¹ í•˜ê¸°ê¹Œì§€ ì™„ë£Œ" << '\n';
 
 	}
-	
+
 }
