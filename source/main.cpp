@@ -7,7 +7,7 @@
 int main()
 {
 
-	stroke circle; // Àü¿ªº¯¼ö¿¡¼­ ±×³É ¿©±â·Î ¹Ù²ãº½
+	stroke circle; // ì „ì—­ë³€ìˆ˜ì—ì„œ ê·¸ëƒ¥ ì—¬ê¸°ë¡œ ë°”ê¿”ë´„
 
 	cv::Mat image = cv::imread("Cat.jpg");
 	int height = image.rows;
@@ -15,35 +15,34 @@ int main()
 
 	cv::Mat canvas = cv::imread("Cat.jpg");
 	canvas = cv::imread("Cat.jpg");
-	canvas = cv::Scalar(255, 255, 255); // Äµ¹ö½º ´Ü»öÀ¸·Î ¸¸µé±â
+	canvas = cv::Scalar(255, 255, 255); // ìº”ë²„ìŠ¤ ë‹¨ìƒ‰ìœ¼ë¡œ ë§Œë“¤ê¸°
 
 	cv::Mat blur_image = cv::imread("Cat.jpg");
 
-	double g_sigma; // °¡¿ì½Ã¾È ºí·¯¸µÇÔ¼ö ½Ã±×¸¶
-	std::cout << "°¡¿ì½Ã¾È ½Ã±×¸¶°ª ÀÔ·ÂÇÏ±â : ";
+	double g_sigma; // ê°€ìš°ì‹œì•ˆ ë¸”ëŸ¬ë§í•¨ìˆ˜ ì‹œê·¸ë§ˆ
+	std::cout << "ê°€ìš°ì‹œì•ˆ ì‹œê·¸ë§ˆê°’ ì…ë ¥í•˜ê¸° : ";
 	std::cin >> g_sigma;
 	blur_image = blurring(blur_image, g_sigma);
 
 	int layer_num;
-	std::cout << "·¹ÀÌ¾îÀÇ °³¼ö(ºê·¯½ÃÀÇ °³¼ö) ÀÔ·ÂÇÏ±â :";
+	std::cout << "ë ˆì´ì–´ì˜ ê°œìˆ˜(ë¸ŒëŸ¬ì‹œì˜ ê°œìˆ˜) ì…ë ¥í•˜ê¸° :";
 	std::cin >> layer_num;
 	circle.put_layersize(layer_num);
 
-	circle.layer_list=circle.Painterly_initialize();
-	//¸¶Áø °è»ê ÇÔ¼ö ´õ È¿À²ÀûÀ¸·Î °è»ê½ÃÅ°±â
+	circle.layer_list = circle.Painterly_initialize();
+	//ë§ˆì§„ ê³„ì‚° í•¨ìˆ˜ ë” íš¨ìœ¨ì ìœ¼ë¡œ ê³„ì‚°ì‹œí‚¤ê¸°
 
 	//int layer_num = circle.get_layersize();
-	//·¹ÀÌ¾îÀÇ °³¼ö¸¸Å­ ÆäÀÎÆ®Ä¥ ´Ü°è°¡ ÇÊ¿ä
-	int T = 100; // ÆäÀÎÆ® Ä¥ÇØÁö´Â °æ°è°ª
+	//ë ˆì´ì–´ì˜ ê°œìˆ˜ë§Œí¼ í˜ì¸íŠ¸ì¹  ë‹¨ê³„ê°€ í•„ìš”
+	int T = 500;
 	circle.paint(T, canvas, blur_image, circle.layer_list);
 
 	/*
-	¿ø·¡ °èÈ¹ (°¢ ·¹ÀÌ¾î¸¶´Ù ¹İº¹¹® µû·Î ½ÇÇàµÇµµ·Ï.
+	ì›ë˜ ê³„íš (ê° ë ˆì´ì–´ë§ˆë‹¤ ë°˜ë³µë¬¸ ë”°ë¡œ ì‹¤í–‰ë˜ë„ë¡.
 	for (int i = 0; i < layer_num; i++)
 	{
-		//ÀÌ¹ÌÁö ÀüÃ¼¸¦ ¼øÈ¸ÇÏ¸ç ¸¶ÁøÀ» »©°í ÆäÀÎÆ®Ä¥
+		//ì´ë¯¸ì§€ ì „ì²´ë¥¼ ìˆœíšŒí•˜ë©° ë§ˆì§„ì„ ë¹¼ê³  í˜ì¸íŠ¸ì¹ 
 		circle.paint(canvas, blur_image, circle.layer_list);
-
 		for (int k = margin_h_index; k < height-margin_h_index; k++)
 		{
 			for (int l = margin_w_index; l < width-margin_w_index; l++)
@@ -53,7 +52,7 @@ int main()
 		}
 	}
 	*/
-	
+
 	cv::imshow("Painterly_Rendering", canvas);
 	cv::waitKey(0);
 
