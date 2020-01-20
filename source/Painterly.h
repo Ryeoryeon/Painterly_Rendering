@@ -19,12 +19,12 @@ struct layer
 class stroke
 {
 	int layer_size;
-	
+
 
 public:
 	std::vector<layer> Painterly_initialize();
-	std::vector<layer> layer_list; // ³ªÁß¿¡ Á¢±ÙÇÔ¼ö ¸¸µé¾î¼­ ¹Ù²ãÁÖ±â
-	void paint(int T, cv::Mat canvas, const cv::Mat reference, std::vector<layer> layer_list);
+	std::vector<layer> layer_list; // ë‚˜ì¤‘ì— ì ‘ê·¼í•¨ìˆ˜ ë§Œë“¤ì–´ì„œ ë°”ê¿”ì£¼ê¸°
+	void paint(int T, cv::Mat & canvas, const cv::Mat & reference, std::vector<layer> & layer_list);
 	int calculate_margin(int layer, int length);
 
 	int get_layersize() { return layer_size; };
