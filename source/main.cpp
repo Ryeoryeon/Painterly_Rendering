@@ -34,8 +34,8 @@ int main()
 
 	//int layer_num = circle.get_layersize();
 	//레이어의 개수만큼 페인트칠 단계가 필요
-	int T = 500;
-	circle.paint(T, canvas, blur_image, circle.layer_list);
+	int T = 10;
+	canvas = circle.paint(T, canvas, blur_image, circle.layer_list);
 
 	/*
 	원래 계획 (각 레이어마다 반복문 따로 실행되도록.
