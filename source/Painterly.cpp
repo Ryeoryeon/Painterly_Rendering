@@ -139,9 +139,9 @@ cv::Mat stroke::paint(int T, cv::Mat& canvas, const cv::Mat& reference, std::vec
 
 							for (int l = 0; l < 3; l++) // R,G,B는 모두 세 개이므로
 							{
-								int canvas_color = canvas.at<cv::Vec3b>(y, x)[l];
-								int reference_color = reference.at<cv::Vec3b>(y, x)[l];
-								RGB_index = difference(canvas_color, reference_color);
+								int canvas_color = canvas.at<cv::Vec3b>(k, j)[l];
+								int reference_color = reference.at<cv::Vec3b>(k, j)[l];
+								RGB_index += difference(canvas_color, reference_color);
 							}
 
 							temp_area[j - (index_x)][k - (index_y)] = RGB_index;
@@ -182,7 +182,6 @@ cv::Mat stroke::paint(int T, cv::Mat& canvas, const cv::Mat& reference, std::vec
 									biggest_error.y = j;
 									biggest_error.x = k;
 								}
-
 							}
 						}
 
@@ -226,7 +225,6 @@ cv::Mat stroke::paint(int T, cv::Mat& canvas, const cv::Mat& reference, std::vec
 
 		}
 
-		std::cout << i + 1 << "번째 레이어 스트로크 구성 완료" << '\n';
 
 		//레이어 하나 끝날 때 마다 new_stroke_list에 저장된 스트로크들을 랜덤한 순서대로 칠하기
 		//일단 랜덤은 구현 안했음 이것도 해야함!!
@@ -240,7 +238,14 @@ cv::Mat stroke::paint(int T, cv::Mat& canvas, const cv::Mat& reference, std::vec
 			cv::circle(canvas, new_stroke_list[u], layer_list[i].brush_size, cv::Scalar(ref_color_B, ref_color_G, ref_color_R), -1); // 두께에 -1을 입력하면 원 채우기
 		}
 
-		std::cout << i + 1 << "번째 레이어칠하기까지 완료" << '\n';
+		if (i == 0)
+			cv::imwrite("0.jpg", canvas);
+
+		else if (i == 1)
+			cv::imwrite("1.jpg", canvas);
+
+		else
+			cv::imwrite("2.jpg", canvas);
 
 	}
 
