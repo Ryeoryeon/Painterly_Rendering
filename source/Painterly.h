@@ -2,6 +2,8 @@
 #include "opencv2/opencv.hpp"
 #include <vector>
 
+static int MARGIN = 10;
+
 struct layer
 {
 	layer(int brush_size, double f_g, int grid_size)
@@ -23,8 +25,9 @@ class stroke
 
 public:
 	std::vector<layer> Painterly_initialize();
-	std::vector<layer> layer_list; // ë‚˜ì¤‘ì— ì ‘ê·¼í•¨ìˆ˜ ë§Œë“¤ì–´ì„œ ë°”ê¿”ì£¼ê¸°
-	cv::Mat paint(int T, cv::Mat& canvas, const cv::Mat& reference, std::vector<layer>& layer_list);
+	std::vector<layer> layer_list; // ³ªÁß¿¡ Á¢±ÙÇÔ¼ö ¸¸µé¾î¼­ ¹Ù²ãÁÖ±â
+	//std::vector<cv::Point_<int>> dot_list;
+	cv::Mat paint(float T, cv::Mat& canvas, const cv::Mat& reference, std::vector<layer>& layer_list, const std::vector<std::vector<float>> & image_etf_dx, const std::vector<std::vector<float>>& image_etf_dy);
 	int calculate_margin(int layer, int length);
 
 	int get_layersize() { return layer_size; };
@@ -33,5 +36,10 @@ public:
 
 };
 
-cv::Mat blurring(cv::Mat image, double g_sigma);
+cv::Mat blurring(cv::Mat & image, double g_sigma);
 int difference(int canvas_color, int reference_color);
+int random_alpha_H(int color);
+int random_alpha_SV(int color);
+void makeVectorCoherent(float ori_dx, float ori_dy, float& coh_dx, float& coh_dy);
+bool getFlowVectorInterpolated(int m_nWidth, int m_nHeight, float x, float y, float& dx, float& dy, const std::vector<std::vector<float>>& image_dx, const std::vector<std::vector<float>>& image_dy);
+bool getFlowVectorRK4(int m_nWidth, int m_nHeight, float x, float y, float& dx, float& dy, const std::vector<std::vector<float>>& image_dx, const std::vector<std::vector<float>>& image_dy);

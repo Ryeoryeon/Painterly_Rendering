@@ -19,7 +19,7 @@ int random_alpha_SV(int color)
 {
 	srand((unsigned int)time(0));
 
-	// ê° ê°’ì´ 10% ë²”ìœ„ ë‚´ì—ì„œë§Œ ë³€í•˜ë„ë¡.
+	// °¢ °ªÀÌ 10% ¹üÀ§ ³»¿¡¼­¸¸ º¯ÇÏµµ·Ï.
 	int alpha_max = color + 0.1 * color;
 	int alpha_min = color + (-0.1) * color;
 
@@ -38,7 +38,7 @@ int random_alpha_H(int color)
 {
 	srand((unsigned int)time(0));
 
-	// ê° ê°’ì´ 10% ë²”ìœ„ ë‚´ì—ì„œë§Œ ë³€í•˜ë„ë¡.
+	// °¢ °ªÀÌ 10% ¹üÀ§ ³»¿¡¼­¸¸ º¯ÇÏµµ·Ï.
 	int alpha_max = color + 0.1 * color;
 	int alpha_min = color + (-0.1) * color;
 

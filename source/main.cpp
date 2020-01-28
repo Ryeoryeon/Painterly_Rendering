@@ -1,3 +1,4 @@
+#define _CRT_SECURE_NO_WARNINGS
 #include <iostream>
 #include <opencv2/opencv.hpp>
 #include "Painterly.h"
@@ -7,52 +8,80 @@
 int main()
 {
 
-	stroke circle; // ì „ì—­ë³€ìˆ˜ì—ì„œ ê·¸ëƒ¥ ì—¬ê¸°ë¡œ ë°”ê¿”ë´„
+	stroke circle;
 
-	cv::Mat image = cv::imread("Cat.jpg");
+	cv::Mat image = cv::imread("lenna.jpg");
 	int height = image.rows;
 	int width = image.cols;
 
-	cv::Mat canvas = cv::imread("Cat.jpg");
-	canvas = cv::imread("Cat.jpg");
-	canvas = cv::Scalar(255, 255, 255); // ìº”ë²„ìŠ¤ ë‹¨ìƒ‰ìœ¼ë¡œ ë§Œë“¤ê¸°
+	cv::Mat canvas = cv::imread("empty_canvas.jpg"); // ¹è°æÀ» Èò ÀÌ¹ÌÁö -> Äµ¹ö½º ÀÌ¹ÌÁö·Î ¼öÁ¤
+	//canvas = cv::Scalar(255, 255, 255); // Äµ¹ö½º ´Ü»öÀ¸·Î ¸¸µé±â
 
-	cv::Mat blur_image = cv::imread("Cat.jpg");
+	cv::resize(canvas, canvas, cv::Size(width + 2*MARGIN, height + 2*MARGIN), 0, 0);
 
-	double g_sigma; // ê°€ìš°ì‹œì•ˆ ë¸”ëŸ¬ë§í•¨ìˆ˜ ì‹œê·¸ë§ˆ
-	std::cout << "ê°€ìš°ì‹œì•ˆ ì‹œê·¸ë§ˆê°’ ì…ë ¥í•˜ê¸° : ";
+	cv::Mat blur_image = cv::imread("lenna.jpg");
+
+	FILE* etf;
+	etf = fopen("lenna.etf", "rb");
+
+	if (etf == NULL)
+	{
+		exit(1);
+	}
+
+;	float* buffer = new float[2 * width * height]; // º¤ÅÍ·Î ÇÏ´Ï±î ¾È µÈ´Ù.
+	std::vector<std::vector<float>> image_etf_dx;
+	std::vector<std::vector<float>> image_etf_dy;
+
+	image_etf_dx.assign(width, std::vector<float>(height, 0));
+	image_etf_dy.assign(width, std::vector<float>(height, 0));
+	//size of float (width*height*size of float*2) // ÀÌ·¸°Ô ¸Ş¸ğ¸®¸¦ ÇÒ´çÀ» ÇÑ ´ÙÀ½¿¡,
+
+	/*
+	fseek(etf, 0, SEEK_END); // ÆÄÀÏÀÇ ¸¶Áö¸· À§Ä¡·Î ÀÌµ¿
+	int etf_size = ftell(etf); // ¸¶Áö¸· À§Ä¡ °ªÀ» ¹Ş¾Æ¼­ ÆÄÀÏÀÇ Å©±â °è»ê (lenna±âÁØ 2457600 (640 * 480 * (size of float == 4) * 2))
+	fseek(etf, 0, SEEK_SET); // ÆÄÀÏÀÇ Ã³À½ À§Ä¡·Î Ä¿¼­ ÀÌµ¿
+	*/
+
+	//Àç¿Ï¾ğ´Ï : ´ÜÀÏ ¹è¿­ ÇÏ³ª¸¸ ³ÖÀ½. ¿©±â¿¡ dx, dy ¸ğµÎ ÀúÀåÇß´Âµ¥ ÀÎµ¦½º°¡ Â¦¼ö, È¦¼ö³Ä¿¡ µû¶ó dx,dyÀúÀå °¡´É
+	fread(buffer, sizeof(float), 2 * width * height, etf);
+
+	int index = 0;
+
+	for (int x = 0; x < width; x++)
+	{
+		for (int y = 0; y < height; y++)
+		{
+			image_etf_dx[x][y] = buffer[index++];
+			image_etf_dy[x][y] = buffer[index++];
+		}
+	}
+
+	fclose(etf);
+
+	double g_sigma; // °¡¿ì½Ã¾È ºí·¯¸µÇÔ¼ö ½Ã±×¸¶
+	std::cout << "°¡¿ì½Ã¾È ½Ã±×¸¶°ª ÀÔ·ÂÇÏ±â : ";
 	std::cin >> g_sigma;
 	blur_image = blurring(blur_image, g_sigma);
 
+	cvtColor(canvas, canvas, cv::COLOR_BGR2HSV); // »ö ·£´ı º¯ÇüÀ» À§ÇØ ³ÖÀº ÄÚµå.
+	cvtColor(blur_image, blur_image, cv::COLOR_BGR2HSV);
+
+
 	int layer_num;
-	std::cout << "ë ˆì´ì–´ì˜ ê°œìˆ˜(ë¸ŒëŸ¬ì‹œì˜ ê°œìˆ˜) ì…ë ¥í•˜ê¸° :";
+	std::cout << "·¹ÀÌ¾îÀÇ °³¼ö(ºê·¯½ÃÀÇ °³¼ö) ÀÔ·ÂÇÏ±â :";
 	std::cin >> layer_num;
 	circle.put_layersize(layer_num);
 
 	circle.layer_list = circle.Painterly_initialize();
-	//ë§ˆì§„ ê³„ì‚° í•¨ìˆ˜ ë” íš¨ìœ¨ì ìœ¼ë¡œ ê³„ì‚°ì‹œí‚¤ê¸°
+	//¸¶Áø °è»ê ÇÔ¼ö ´õ È¿À²ÀûÀ¸·Î °è»ê½ÃÅ°±â
 
 	//int layer_num = circle.get_layersize();
-	//ë ˆì´ì–´ì˜ ê°œìˆ˜ë§Œí¼ í˜ì¸íŠ¸ì¹  ë‹¨ê³„ê°€ í•„ìš”
-	int T = 10;
-	canvas = circle.paint(T, canvas, blur_image, circle.layer_list);
+	//·¹ÀÌ¾îÀÇ °³¼ö¸¸Å­ ÆäÀÎÆ®Ä¥ ´Ü°è°¡ ÇÊ¿ä
+	float T = 0.05;
+	canvas = circle.paint(T, canvas, blur_image, circle.layer_list, image_etf_dx, image_etf_dy);
 
-	/*
-	ì›ë˜ ê³„íš (ê° ë ˆì´ì–´ë§ˆë‹¤ ë°˜ë³µë¬¸ ë”°ë¡œ ì‹¤í–‰ë˜ë„ë¡.
-	for (int i = 0; i < layer_num; i++)
-	{
-		//ì´ë¯¸ì§€ ì „ì²´ë¥¼ ìˆœíšŒí•˜ë©° ë§ˆì§„ì„ ë¹¼ê³  í˜ì¸íŠ¸ì¹ 
-		circle.paint(canvas, blur_image, circle.layer_list);
-		for (int k = margin_h_index; k < height-margin_h_index; k++)
-		{
-			for (int l = margin_w_index; l < width-margin_w_index; l++)
-			{
-				circle.paint(canvas, blur_image, circle.layer_list);
-			}
-		}
-	}
-	*/
-
+	cvtColor(canvas, canvas, cv::COLOR_HSV2BGR);
 	cv::imshow("Painterly_Rendering", canvas);
 	cv::waitKey(0);
 

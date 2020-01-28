@@ -3,7 +3,7 @@
 #include "opencv2/opencv.hpp"
 #include "Painterly.h"
 
-cv::Mat blurring(cv::Mat image, double g_sigma)
+cv::Mat blurring(cv::Mat & image, double g_sigma)
 {
     //가우시안 함수 벡터 계산
 
@@ -53,7 +53,6 @@ cv::Mat blurring(cv::Mat image, double g_sigma)
             image.at<cv::Vec3b>(y, x)[2] = (R_blur / G_sum);
         }
     }
-
 
 	return image;
 }
