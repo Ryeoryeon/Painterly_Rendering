@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <ctime>
 #include "opencv2/opencv.hpp"
 #include "Painterly.h"
 
@@ -13,15 +14,41 @@ int difference(int canvas_color, int reference_color)
 
 }
 
-int getRandom(int min, int max)
+
+int random_alpha_SV(int color)
 {
-	// Assumes std::srand() has already been called 
-	// Assumes max - min <= RAND_MAX
+	srand((unsigned int)time(0));
 
-	static const double fraction = 1.0 / (RAND_MAX + 1.0); 
-	// static used for efficiency, so we only calculate this value once 
-	// evenly distribute the random number across our range 
-	
-	return min + static_cast<int>((max - min + 1) * (std::rand() * fraction));
+	// 각 값이 10% 범위 내에서만 변하도록.
+	int alpha_max = color + 0.1 * color;
+	int alpha_min = color + (-0.1) * color;
 
+	color = rand() % (alpha_max - alpha_min + 1) + alpha_min;
+
+	if (color > 255)
+		color = 255;
+
+	else if (color < 0)
+		color = 0;
+
+	return color;
+}
+
+int random_alpha_H(int color)
+{
+	srand((unsigned int)time(0));
+
+	// 각 값이 10% 범위 내에서만 변하도록.
+	int alpha_max = color + 0.1 * color;
+	int alpha_min = color + (-0.1) * color;
+
+	color = rand() % (alpha_max - alpha_min + 1) + alpha_min;
+
+	if (color > 180)
+		color = 180;
+
+	else if (color < 0)
+		color = 0;
+
+	return color;
 }
