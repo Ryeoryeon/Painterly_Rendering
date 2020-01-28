@@ -231,12 +231,22 @@ cv::Mat stroke::paint(int T, cv::Mat& canvas, const cv::Mat& reference, std::vec
 
 		for (int u = 0; u < new_stroke_list.size(); u++)
 		{
-			int ref_color_B = reference.at<cv::Vec3b>(new_stroke_list[u].y, new_stroke_list[u].x)[0];
-			int ref_color_G = reference.at<cv::Vec3b>(new_stroke_list[u].y, new_stroke_list[u].x)[1];
-			int ref_color_R = reference.at<cv::Vec3b>(new_stroke_list[u].y, new_stroke_list[u].x)[2];
+			
+			int ref_color_H = random_alpha_H(reference.at<cv::Vec3b>(new_stroke_list[u].y, new_stroke_list[u].x)[0]);
+			int ref_color_S = random_alpha_SV(reference.at<cv::Vec3b>(new_stroke_list[u].y, new_stroke_list[u].x)[1]);
+			int ref_color_V = random_alpha_SV(reference.at<cv::Vec3b>(new_stroke_list[u].y, new_stroke_list[u].x)[2]);
+			
 
-			cv::circle(canvas, new_stroke_list[u], layer_list[i].brush_size, cv::Scalar(ref_color_B, ref_color_G, ref_color_R), -1); // 두께에 -1을 입력하면 원 채우기
+			/*
+			int ref_color_H = reference.at<cv::Vec3b>(new_stroke_list[u].y, new_stroke_list[u].x)[0];
+			int ref_color_S = reference.at<cv::Vec3b>(new_stroke_list[u].y, new_stroke_list[u].x)[1];
+			int ref_color_V = reference.at<cv::Vec3b>(new_stroke_list[u].y, new_stroke_list[u].x)[2];
+			*/
+
+			cv::circle(canvas, new_stroke_list[u], layer_list[i].brush_size, cv::Scalar(ref_color_H, ref_color_S, ref_color_V), -1); // 두께에 -1을 입력하면 원 채우기
 		}
+
+		/* (이미지 3단계 저장)
 
 		if (i == 0)
 			cv::imwrite("0.jpg", canvas);
@@ -246,6 +256,7 @@ cv::Mat stroke::paint(int T, cv::Mat& canvas, const cv::Mat& reference, std::vec
 
 		else
 			cv::imwrite("2.jpg", canvas);
+		*/
 
 	}
 
