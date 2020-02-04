@@ -2,7 +2,8 @@
 #include "opencv2/opencv.hpp"
 #include <vector>
 
-static int MARGIN = 10;
+static int MARGIN = 30;
+static int STROKE_NUMBER = 5;
 
 struct layer
 {
@@ -25,7 +26,7 @@ class stroke
 
 public:
 	std::vector<layer> Painterly_initialize();
-	std::vector<layer> layer_list; // ³ªÁß¿¡ Á¢±ÙÇÔ¼ö ¸¸µé¾î¼­ ¹Ù²ãÁÖ±â
+	std::vector<layer> layer_list; // ë‚˜ì¤‘ì— ì ‘ê·¼í•¨ìˆ˜ ë§Œë“¤ì–´ì„œ ë°”ê¿”ì£¼ê¸°
 	//std::vector<cv::Point_<int>> dot_list;
 	cv::Mat paint(float T, cv::Mat& canvas, const cv::Mat& reference, std::vector<layer>& layer_list, const std::vector<std::vector<float>> & image_etf_dx, const std::vector<std::vector<float>>& image_etf_dy);
 	int calculate_margin(int layer, int length);
