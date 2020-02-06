@@ -1,7 +1,7 @@
 #include <vector>
 #include <cmath>
 
-//ì¬ì™„ì–¸ë‹ˆ ì½”ë“œ
+//Àç¿Ï¾ğ´Ï ÄÚµå
 
 void makeVectorCoherent(float ori_dx, float ori_dy, float& coh_dx, float& coh_dy) 
 {
@@ -13,7 +13,7 @@ void makeVectorCoherent(float ori_dx, float ori_dy, float& coh_dx, float& coh_dy
 
 bool getFlowVectorInterpolated(int m_nWidth, int m_nHeight, float x, float y, float& dx, float& dy, const std::vector<std::vector<float>> & image_dx, const std::vector<std::vector<float>> & image_dy ) 
 {
-	if ((x < 0) || (x > (m_nWidth - 2)) || (y < 0) || (y > (m_nHeight - 2))) // ++x, ++yë˜ëŠ” ê²ƒê¹Œì§€ ìƒê° í•´ ì¤˜ì•¼ í•˜ë‹ˆê¹Œ ì¼ë‹¨ -1 -> -2
+	if ((x < 0) || (x > (m_nWidth - 3)) || (y < 0) || (y > (m_nHeight - 3))) // ++x, ++yµÇ´Â °Í±îÁö »ı°¢ ÇØ Áà¾ß ÇÏ´Ï±î ÀÏ´Ü -1 -> -2
 		return false;
 
 	int nx = x;
@@ -33,8 +33,8 @@ bool getFlowVectorInterpolated(int m_nWidth, int m_nHeight, float x, float y, fl
 	float fy1 = y - ny;
 	float fy2 = 1.f - fy1;
 
-	int index = ny * m_nWidth * 2 + nx * 2; // ì´ê±° ì¼ì°¨ ë°°ì—´ì´ì–´ì„œ ì½ìœ¼ë ¤ê³  ì“°ì‹  ê²ƒ ê°™ë‹¤.
-	//ì¼ë‹¨ ë‚˜ëŠ” ì´ì¤‘ë²¡í„°ë¡œ ì½ì–´ì™”ìœ¼ë‹ˆê¹Œ ìˆ˜ì •..?
+	int index = ny * m_nWidth * 2 + nx * 2; // ÀÌ°Å ÀÏÂ÷ ¹è¿­ÀÌ¾î¼­ ÀĞÀ¸·Á°í ¾²½Å °Í °°´Ù.
+	//ÀÏ´Ü ³ª´Â ÀÌÁßº¤ÅÍ·Î ÀĞ¾î¿ÔÀ¸´Ï±î ¼öÁ¤..?
 	float dx1 = image_dx[x][y];
 	float dy1 = image_dy[x][y];
 	float dx2 = image_dx[++x][++y];
@@ -66,7 +66,7 @@ bool getFlowVectorRK4(int m_nWidth, int m_nHeight, float x, float y, float& dx, 
 		return false;
 
 	float asixth = 1.f / 6.f;
-	float m_fStepLength = 1; // ì–´ë–¤ ê°’ìœ¼ë¡œ í•´ì•¼ í•  ì§€ ëª¨ë¥´ê² ìœ¼ë‹ˆ ì¼ë‹¨ 1ë¡œ ì„¤ì •í•˜ì.
+	float m_fStepLength = 1; // ¾î¶² °ªÀ¸·Î ÇØ¾ß ÇÒ Áö ¸ğ¸£°ÚÀ¸´Ï ÀÏ´Ü 1·Î ¼³Á¤ÇÏÀÚ.
 
 	float dx1, dy1, dx2, dy2, dx3, dy3, dx4, dy4, dx_temp, dy_temp, ori_dx, ori_dy;
 

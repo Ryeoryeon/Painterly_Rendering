@@ -10,19 +10,48 @@ int main()
 
 	stroke circle;
 
+	cv::Mat brush = cv::imread("brush_1.png", cv::IMREAD_GRAYSCALE);
+	//cv::Mat brush = cv::imread("brush_2.png", cv::IMREAD_GRAYSCALE);
+	//cv::Mat brush = cv::imread("brush_3.png", cv::IMREAD_GRAYSCALE);
+
+	int b_w = brush.cols;
+
+	std::vector<std::vector<int>> brush_vec;
+	brush_vec.assign(b_w, std::vector<int>(b_w, 0));
+
+	//바이너리화 작업
+	for (int x = 0; x < b_w; x++)
+	{
+		for (int y = 0; y < b_w; y++)
+		{
+			if (brush.at<uchar>(y, x) != 255) // 색이 차 있는 부분이라면
+				brush_vec[x][y] = 1;
+		}
+	}
+
+
+	//cv::Mat image = cv::imread("landscape.jpg");
+	//cv::Mat image = cv::imread("gra_2.png");
 	cv::Mat image = cv::imread("lenna.jpg");
 	int height = image.rows;
 	int width = image.cols;
 
-	cv::Mat canvas = cv::imread("empty_canvas.jpg"); // 배경을 흰 이미지 -> 캔버스 이미지로 수정
-	//canvas = cv::Scalar(255, 255, 255); // 캔버스 단색으로 만들기
+	cv::Mat canvas = cv::imread("empty_canvas_2.jpg");
+	//cv::Mat canvas = cv::imread("empty_canvas_3.jpg");
+	//cv::Mat canvas = cv::imread("Newsprint.jpg");
+	//cv::Mat canvas = cv::imread("Washi.jpg");
+	//canvas = cv::Scalar(255, 255, 255); // 캔버스가 흰색 단색이었으면 좋겠을 때
 
 	cv::resize(canvas, canvas, cv::Size(width + 2*MARGIN, height + 2*MARGIN), 0, 0);
 
+	//cv::Mat blur_image = cv::imread("landscape.jpg");
 	cv::Mat blur_image = cv::imread("lenna.jpg");
+	//cv::Mat blur_image = cv::imread("gra_2.png");
 
 	FILE* etf;
-	etf = fopen("lenna.etf", "rb");
+	//etf = fopen("landscape.etf", "rb");
+	etf = fopen("lenna_2.etf", "rb");
+	//etf = fopen("gra_2.etf", "rb");
 
 	if (etf == NULL)
 	{
@@ -48,9 +77,20 @@ int main()
 
 	int index = 0;
 
-	for (int x = 0; x < width; x++)
+	//x에 대해서 y가 증가하는거니까 세로방향으로 증가하는 느낌. 즉 etf가 가로세로를 거꾸로 불러왔다
+/*	for (int x = 0; x < width; x++)
 	{
 		for (int y = 0; y < height; y++)
+		{
+			image_etf_dx[x][y] = buffer[index++];
+			image_etf_dy[x][y] = buffer[index++];
+		}
+	}
+*/
+	//y에 대해서 x가 증가하는거니까 이게 가로방향으로 증가하는 느낌. etf는 가로로 쭉 붙이는거기때문에..
+	for (int y = 0; y < height; y++)
+	{
+		for (int x = 0; x < width; x++)
 		{
 			image_etf_dx[x][y] = buffer[index++];
 			image_etf_dy[x][y] = buffer[index++];
@@ -64,8 +104,10 @@ int main()
 	std::cin >> g_sigma;
 	blur_image = blurring(blur_image, g_sigma);
 
+	/* // [HSV] HSV설정을 위해서라면 각주 풀기
 	cvtColor(canvas, canvas, cv::COLOR_BGR2HSV); // 색 랜덤 변형을 위해 넣은 코드.
 	cvtColor(blur_image, blur_image, cv::COLOR_BGR2HSV);
+	*/
 
 
 	int layer_num;
@@ -79,11 +121,11 @@ int main()
 	//int layer_num = circle.get_layersize();
 	//레이어의 개수만큼 페인트칠 단계가 필요
 	float T = 0.05;
-	canvas = circle.paint(T, canvas, blur_image, circle.layer_list, image_etf_dx, image_etf_dy);
+	canvas = circle.paint(T, canvas, blur_image, brush_vec, circle.layer_list, image_etf_dx, image_etf_dy);
 
-	cvtColor(canvas, canvas, cv::COLOR_HSV2BGR);
-	cv::imshow("Painterly_Rendering", canvas);
-	cv::waitKey(0);
+	// cvtColor(canvas, canvas, cv::COLOR_HSV2BGR); // [HSV] HSV설정을 위해서라면 각주 풀기
+	//cv::imshow("Painterly_Rendering", canvas);
+	//cv::waitKey(0);
 
 	return 0;
 }
