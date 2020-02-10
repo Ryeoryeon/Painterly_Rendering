@@ -97,9 +97,6 @@ cv::Mat stroke::paint(float T, cv::Mat& canvas, const cv::Mat& reference, const 
 				double area_error = 0;
 
 				//임시 공간에 대한 이중 벡터 할당
-				//센터를 기준으로 grid_size/2만큼의 길이씩 있으니까. (만일 grid_size가 홀수면 버림해줘야 하니까 저렇게 함)
-				//임시 공간에 대한 크기를 그냥 grid*grid로 잡은거 != (논문에 쓰여있는대로)센터를 기준으로 저렇게 잡은거
-
 				temp_area.assign(layer_list[i].grid_size, std::vector<int>(layer_list[i].grid_size, 0));
 
 				int RGB_diff = 0; // 영역 전체에 대한 canvas값과 reference image에 대한 RGB 차이의 합을 구할 때 쓰이는 인덱스
@@ -108,9 +105,6 @@ cv::Mat stroke::paint(float T, cv::Mat& canvas, const cv::Mat& reference, const 
 				//그리드가 한칸일 때
 				if (layer_list[i].grid_size <= 1) // if가 성립되면 무조건 그리드 사이즈가 1.
 				{
-					//grid_size/(double)2가 0일 때 가능하다.
-					//이 때는 어떻게 예외처리를 하지?
-					//어쨌든 임시 공간이 한칸이라는 거니까 그 칸에 대해서만 오류 합을 하면 되는 거 아닐까?
 
 					for (int i = 0; i < 3; i++)
 					{
@@ -129,8 +123,7 @@ cv::Mat stroke::paint(float T, cv::Mat& canvas, const cv::Mat& reference, const 
 					int index_x = x - temp_divide_two;
 					int index_y = y - temp_divide_two;
 
-					//임시 공간 전체에 대해 캔버스와 블러 이미지에 대한 R,G,B값 차이를 구해야 한다.
-					//x,y가 그리드의 센터일 때 기준으로~!
+					//임시 공간 전체에 대해 캔버스와 블러 이미지에 대한 R,G,B값 차이를 구해야 한다. (x,y가 그리드의 센터일 때를 기준)
 					for (int j = x - (temp_divide_two); j <= x + (temp_divide_two); j++) // 등호 붙이는게 맞는듯
 					{
 						for (int k = y - (temp_divide_two); k <= y + (temp_divide_two); k++)
@@ -216,9 +209,9 @@ cv::Mat stroke::paint(float T, cv::Mat& canvas, const cv::Mat& reference, const 
 		for (int u = 0; u < new_stroke_list.size(); u++)
 		{
 			//new_stroke_list에 저장된 점을 시작점으로 가정하고 코드를 작성하자.
-			int ref_color_H = reference.at<cv::Vec3b>(new_stroke_list[u].y, new_stroke_list[u].x)[0];
-			int ref_color_S = reference.at<cv::Vec3b>(new_stroke_list[u].y, new_stroke_list[u].x)[1];
-			int ref_color_V = reference.at<cv::Vec3b>(new_stroke_list[u].y, new_stroke_list[u].x)[2];
+			int ref_color_B = reference.at<cv::Vec3b>(new_stroke_list[u].y, new_stroke_list[u].x)[0];
+			int ref_color_G = reference.at<cv::Vec3b>(new_stroke_list[u].y, new_stroke_list[u].x)[1];
+			int ref_color_R = reference.at<cv::Vec3b>(new_stroke_list[u].y, new_stroke_list[u].x)[2];
 
 
 			//그리드 사이즈보다 브러시 사이즈가 크거나 같을 때는 점 한번만 찍히도록.
@@ -227,40 +220,40 @@ cv::Mat stroke::paint(float T, cv::Mat& canvas, const cv::Mat& reference, const 
 
 				//투명도를 위해 추가한 코드
 
-				int alpha_H = ((1-ALPHA) * canvas.at<cv::Vec3b>(MARGIN + new_stroke_list[u].y, MARGIN + new_stroke_list[u].x)[0]) + (ALPHA * ref_color_H);
-				int alpha_S = ((1-ALPHA) * canvas.at<cv::Vec3b>(MARGIN + new_stroke_list[u].y, MARGIN + new_stroke_list[u].x)[1]) + (ALPHA * ref_color_S);
-				int alpha_V = ((1-ALPHA) * canvas.at<cv::Vec3b>(MARGIN + new_stroke_list[u].y, MARGIN + new_stroke_list[u].x)[2]) + (ALPHA * ref_color_V);
+				int alpha_B = ((1-ALPHA) * canvas.at<cv::Vec3b>(MARGIN + new_stroke_list[u].y, MARGIN + new_stroke_list[u].x)[0]) + (ALPHA * ref_color_B);
+				int alpha_G = ((1-ALPHA) * canvas.at<cv::Vec3b>(MARGIN + new_stroke_list[u].y, MARGIN + new_stroke_list[u].x)[1]) + (ALPHA * ref_color_G);
+				int alpha_R = ((1-ALPHA) * canvas.at<cv::Vec3b>(MARGIN + new_stroke_list[u].y, MARGIN + new_stroke_list[u].x)[2]) + (ALPHA * ref_color_R);
 
-				/* // [HSV] (H,S,V로 랜덤을 주고 싶다면 이 각주를 풀고 메인 함수, imwrite의 cvtcolor각주 풀기)
+				float alpha_H, alpha_S, alpha_V;
+
+				//HSV 변환 함수
+				dw_RGB2HSV(alpha_R, alpha_G, alpha_B, alpha_H, alpha_S, alpha_V);
+
+				// [HSV] (H,S,V로 랜덤을 주고 싶다면 이 각주를 풀고 메인 함수, imwrite의 cvtcolor각주 풀기)
 				alpha_H = random_alpha_H(alpha_H);
-				alpha_S = random_alpha_SV(alpha_S);
-				alpha_V = random_alpha_SV(alpha_V);
+				alpha_S = random_alpha_S(alpha_S);
+				alpha_V = random_alpha_V(alpha_V);
 
-				if (alpha_H > 180)
-					alpha_H -= 180;
+				//RGB 변환 함수
+				dw_HSV2RGB(alpha_H, alpha_S, alpha_V, alpha_R, alpha_G, alpha_B);
 
-				if (alpha_H < 0)
-					alpha_H += 180;
+				if (alpha_R > 255)
+					alpha_R = 255;
 
-				*/
+				if (alpha_G > 255)
+					alpha_G = 255;
 
-				if (alpha_H > 255)
-					alpha_H = 255;
+				if (alpha_B > 255)
+					alpha_B = 255;
 
-				if (alpha_S > 255)
-					alpha_S = 255;
+				if (alpha_R < 0)
+					alpha_R = 0;
 
-				if (alpha_V > 255)
-					alpha_V = 255;
+				if (alpha_G < 0)
+					alpha_G = 0;
 
-				if (alpha_H < 0)
-					alpha_H = 0;
-
-				if (alpha_S < 0)
-					alpha_S = 0;
-
-				if (alpha_V < 0)
-					alpha_V = 0;
+				if (alpha_B < 0)
+					alpha_B = 0;
 
 				// 원이 아닌 진짜 브러시로 찍어주기 위한 작업
 
@@ -283,9 +276,9 @@ cv::Mat stroke::paint(float T, cv::Mat& canvas, const cv::Mat& reference, const 
 							if (paint_x >= canvas.cols || paint_x < 0 || paint_y < 0 || paint_y >= canvas.rows)
 								continue;
 
-							canvas.at<cv::Vec3b>(paint_y, paint_x)[0] = alpha_H;
-							canvas.at<cv::Vec3b>(paint_y, paint_x)[1] = alpha_S;
-							canvas.at<cv::Vec3b>(paint_y, paint_x)[2] = alpha_V;
+							canvas.at<cv::Vec3b>(paint_y, paint_x)[0] = alpha_B;
+							canvas.at<cv::Vec3b>(paint_y, paint_x)[1] = alpha_G;
+							canvas.at<cv::Vec3b>(paint_y, paint_x)[2] = alpha_R;
 						}
 
 					}
@@ -321,10 +314,10 @@ cv::Mat stroke::paint(float T, cv::Mat& canvas, const cv::Mat& reference, const 
 						canvas_diff += difference(canvas.at<cv::Vec3b>(int(present.y + 0.5), int(present.x + 0.5))[l], reference.at<cv::Vec3b>(int(present.y + 0.5), int(present.x + 0.5))[l]);
 					}
 
-					stroke_diff += difference(ref_color_H, reference.at<cv::Vec3b>(int(present.y + 0.5), int(present.x + 0.5))[0]);
-					stroke_diff += difference(ref_color_S, reference.at<cv::Vec3b>(int(present.y + 0.5), int(present.x + 0.5))[1]);
-					stroke_diff += difference(ref_color_V, reference.at<cv::Vec3b>(int(present.y + 0.5), int(present.x + 0.5))[2]);
-					//stroke_diff += difference(ref_color_V, reference.at<cv::Vec3b>(present.y, present.x)[2]);
+					stroke_diff += difference(ref_color_B, reference.at<cv::Vec3b>(int(present.y + 0.5), int(present.x + 0.5))[0]);
+					stroke_diff += difference(ref_color_G, reference.at<cv::Vec3b>(int(present.y + 0.5), int(present.x + 0.5))[1]);
+					stroke_diff += difference(ref_color_R, reference.at<cv::Vec3b>(int(present.y + 0.5), int(present.x + 0.5))[2]);
+					//stroke_diff += difference(ref_color_R, reference.at<cv::Vec3b>(present.y, present.x)[2]);
 
 					if (canvas_diff < stroke_diff) // 레퍼런스-캔버스 < 레퍼런스-현재 스트로크의 색깔이면 종료.
 						break;
@@ -342,42 +335,42 @@ cv::Mat stroke::paint(float T, cv::Mat& canvas, const cv::Mat& reference, const 
 					if (!(getFlowVectorRK4(width, height, present.x, present.y, DxDy.x, DxDy.y, image_etf_dx, image_etf_dy))) // 맞게 쓴 거 맞나..?
 						break;
 
-					int alpha_H = ((1-ALPHA) * canvas.at<cv::Vec3b>(MARGIN + int(present.y + 0.5), MARGIN + int(present.x + 0.5))[0]) + (ALPHA * ref_color_H);
-					int alpha_S = ((1-ALPHA) * canvas.at<cv::Vec3b>(MARGIN + int(present.y + 0.5), MARGIN + int(present.x + 0.5))[1]) + (ALPHA * ref_color_S);
-					int alpha_V = ((1-ALPHA) * canvas.at<cv::Vec3b>(MARGIN + int(present.y + 0.5), MARGIN + int(present.x + 0.5))[2]) + (ALPHA * ref_color_V);
+					int alpha_B = ((1-ALPHA) * canvas.at<cv::Vec3b>(MARGIN + int(present.y + 0.5), MARGIN + int(present.x + 0.5))[0]) + (ALPHA * ref_color_B);
+					int alpha_G = ((1-ALPHA) * canvas.at<cv::Vec3b>(MARGIN + int(present.y + 0.5), MARGIN + int(present.x + 0.5))[1]) + (ALPHA * ref_color_G);
+					int alpha_R = ((1-ALPHA) * canvas.at<cv::Vec3b>(MARGIN + int(present.y + 0.5), MARGIN + int(present.x + 0.5))[2]) + (ALPHA * ref_color_R);
 
-					/* // [HSV] (H,S,V로 랜덤을 주고 싶다면 이 각주를 풀고 메인 함수, imwrite의 cvtcolor각주 풀기)
+					float alpha_H, alpha_S, alpha_V;
+
+					//HSV 변환 함수
+					dw_RGB2HSV(alpha_R, alpha_G, alpha_B, alpha_H, alpha_S, alpha_V);
+
+					// [HSV] (H,S,V로 랜덤을 주고 싶다면 이 각주를 풀고 메인 함수, imwrite의 cvtcolor각주 풀기)
 					alpha_H = random_alpha_H(alpha_H);
-					alpha_S = random_alpha_SV(alpha_S);
-					alpha_V = random_alpha_SV(alpha_V);
+					alpha_S = random_alpha_S(alpha_S);
+					alpha_V = random_alpha_V(alpha_V);
 
-					if (alpha_H > 180)
-						alpha_H -= 180;
-
-					if (alpha_H < 0)
-						alpha_H += 180;
-
-						*/
+					//RGB 변환 함수
+					dw_HSV2RGB(alpha_H, alpha_S, alpha_V, alpha_R, alpha_G, alpha_B);
 
 					// B,G,R끼리 섞이게 하고 싶다면 예외처리는 아래와 같이
 
-					if (alpha_H > 255)
-						alpha_H = 255;
+					if (alpha_R > 255)
+						alpha_R = 255;
 
-					if (alpha_S > 255)
-						alpha_S = 255;
+					if (alpha_G > 255)
+						alpha_G = 255;
 
-					if (alpha_V > 255)
-						alpha_V = 255;
+					if (alpha_B > 255)
+						alpha_B = 255;
 
-					if (alpha_H < 0)
-						alpha_H = 0;
+					if (alpha_R < 0)
+						alpha_R = 0;
 
-					if (alpha_S < 0)
-						alpha_S = 0;
+					if (alpha_G < 0)
+						alpha_G = 0;
 
-					if (alpha_V < 0)
-						alpha_V = 0;
+					if (alpha_B < 0)
+						alpha_B = 0;
 
 
 					int b_w = 100; // 임시
@@ -400,9 +393,9 @@ cv::Mat stroke::paint(float T, cv::Mat& canvas, const cv::Mat& reference, const 
 									continue;
 
 
-								canvas.at<cv::Vec3b>(paint_y, paint_x)[0] = alpha_H;
-								canvas.at<cv::Vec3b>(paint_y, paint_x)[1] = alpha_S;
-								canvas.at<cv::Vec3b>(paint_y, paint_x)[2] = alpha_V;
+								canvas.at<cv::Vec3b>(paint_y, paint_x)[0] = alpha_B;
+								canvas.at<cv::Vec3b>(paint_y, paint_x)[1] = alpha_G;
+								canvas.at<cv::Vec3b>(paint_y, paint_x)[2] = alpha_R;
 							}
 
 						}

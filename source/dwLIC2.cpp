@@ -1,6 +1,6 @@
 #include "dwLIC2.h"
 #include <opencv2/opencv.hpp>
-//재완언니 코드
+//재완언니가 준 코드
 
 void dwLIC2::setFlowField(int x, int y, float dx, float dy) {
 	if (x < 0 || x >(m_nWidth - 1) || y < 0 || y >(m_nHeight - 1))

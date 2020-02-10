@@ -40,12 +40,14 @@ public:
 
 cv::Mat blurring(cv::Mat & image, double g_sigma);
 int difference(int canvas_color, int reference_color);
-int random_alpha_H(int color);
-int random_alpha_SV(int color);
+
+float random_alpha_H(float color);
+float random_alpha_S(float color);
+float random_alpha_V(float color);
+
 void makeVectorCoherent(float ori_dx, float ori_dy, float& coh_dx, float& coh_dy);
 bool getFlowVectorInterpolated(int m_nWidth, int m_nHeight, float x, float y, float& dx, float& dy, const std::vector<std::vector<float>>& image_dx, const std::vector<std::vector<float>>& image_dy);
 bool getFlowVectorRK4(int m_nWidth, int m_nHeight, float x, float y, float& dx, float& dy, const std::vector<std::vector<float>>& image_dx, const std::vector<std::vector<float>>& image_dy);
 
-int random_alpha_H_2(int R, int G, int B);
-int random_alpha_S_2(int R, int G, int B);
-int random_alpha_V_2(int R, int G, int B);
+void dw_RGB2HSV(int r, int g, int b, float& h, float& s, float& v);	//h(0:360), s(0:1), v(0:255)
+void dw_HSV2RGB(float h, float s, float v, int& r, int& g, int& b);	//h(0:360), s(0:1), v(0:255)
