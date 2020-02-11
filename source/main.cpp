@@ -13,19 +13,20 @@ int main()
 	cv::Mat brush = cv::imread("brush_1.png", cv::IMREAD_GRAYSCALE);
 	//cv::Mat brush = cv::imread("brush_2.png", cv::IMREAD_GRAYSCALE);
 	//cv::Mat brush = cv::imread("brush_3.png", cv::IMREAD_GRAYSCALE);
+	//cv::Mat brush = cv::imread("airbrush.png", cv::IMREAD_GRAYSCALE);
+	//cv::Mat brush = cv::imread("airbrush_2.png", cv::IMREAD_GRAYSCALE);
 
 	int b_w = brush.cols;
 
 	std::vector<std::vector<int>> brush_vec;
 	brush_vec.assign(b_w, std::vector<int>(b_w, 0));
 
-	//바이너리화 작업
+	//브러시의 밝기 저장하기
 	for (int x = 0; x < b_w; x++)
 	{
 		for (int y = 0; y < b_w; y++)
 		{
-			if (brush.at<uchar>(y, x) != 255) // 색이 차 있는 부분이라면
-				brush_vec[x][y] = 1;
+			brush_vec[x][y] = brush.at<uchar>(y, x);
 		}
 	}
 
@@ -99,10 +100,32 @@ int main()
 
 	fclose(etf);
 
+	/*
 	double g_sigma; // 가우시안 블러링함수 시그마
 	std::cout << "가우시안 시그마값 입력하기 : ";
 	std::cin >> g_sigma;
-	blur_image = blurring(blur_image, g_sigma);
+	*/
+	std::cout << "레퍼런스 이미지 선택하기" << '\n';
+	std::cout << "1번 : Gaussian blurring" << '\n';
+	std::cout << "2번 : Bilateral filtering" << '\n';
+
+	int choice;
+	std::cin >> choice;
+	
+	if (choice == 1)
+		blur_image = blurring(blur_image, GAUSSIAN_SIGMA);
+
+	else if (choice == 2) {
+		blur_image = Bilateral_filtering(image);
+		cv::imshow("Bilateral", blur_image);
+		cv::waitKey(0);
+	}
+
+	else
+	{
+		std::cout << "잘못 입력하셨습니다." << '\n';
+		return 1;
+	}
 
 	/* // [HSV] HSV설정을 위해서라면 각주 풀기
 	cvtColor(canvas, canvas, cv::COLOR_BGR2HSV); // 색 랜덤 변형을 위해 넣은 코드.

@@ -3,8 +3,10 @@
 #include <vector>
 
 static int MARGIN = 30;
-static int STROKE_NUMBER = 50;
+static int STROKE_NUMBER = 10;
 static float ALPHA = 0.8;
+static float GAUSSIAN_SIGMA = 3;
+static int GAUSSIAN_SIZE = 7;
 
 struct layer
 {
@@ -39,6 +41,8 @@ public:
 };
 
 cv::Mat blurring(cv::Mat & image, double g_sigma);
+cv::Mat Bilateral_filtering(const cv::Mat& image);
+
 int difference(int canvas_color, int reference_color);
 
 float random_alpha_H(float color);

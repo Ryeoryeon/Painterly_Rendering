@@ -268,7 +268,7 @@ cv::Mat stroke::paint(float T, cv::Mat& canvas, const cv::Mat& reference, const 
 						float index_x = j / (2.0 * layer_list[i].brush_size);
 						float index_y = k / (2.0 * layer_list[i].brush_size);
 
-						if (brush_vec[b_w * index_x][b_w * index_y] == 1)
+						if (brush_vec[b_w * index_x][b_w * index_y] != 255)
 						{
 							int paint_x = MARGIN + new_stroke_list[u].x + (j - (layer_list[i].brush_size));
 							int paint_y = MARGIN + new_stroke_list[u].y + (k - (layer_list[i].brush_size));
@@ -276,9 +276,10 @@ cv::Mat stroke::paint(float T, cv::Mat& canvas, const cv::Mat& reference, const 
 							if (paint_x >= canvas.cols || paint_x < 0 || paint_y < 0 || paint_y >= canvas.rows)
 								continue;
 
-							canvas.at<cv::Vec3b>(paint_y, paint_x)[0] = alpha_B;
-							canvas.at<cv::Vec3b>(paint_y, paint_x)[1] = alpha_G;
-							canvas.at<cv::Vec3b>(paint_y, paint_x)[2] = alpha_R;
+							float brush_alpha = 1 - (brush_vec[b_w * index_x][b_w * index_y] / 255.f); // //1-브러시 벡터의 픽셀 밝기/255
+							canvas.at<cv::Vec3b>(paint_y, paint_x)[0] = alpha_B * brush_alpha;
+							canvas.at<cv::Vec3b>(paint_y, paint_x)[1] = alpha_G * brush_alpha;
+							canvas.at<cv::Vec3b>(paint_y, paint_x)[2] = alpha_R * brush_alpha;
 						}
 
 					}
@@ -297,7 +298,7 @@ cv::Mat stroke::paint(float T, cv::Mat& canvas, const cv::Mat& reference, const 
 				cv::Point_<float> DxDy(image_etf_dx[int(present.x + 0.5f)][int(present.y + 0.5)], image_etf_dy[int(present.x + 0.5)][int(present.y + 0.5)]); // 현재 x,y의 dx,dy
 				//0.5는 반올림
 
-				for (int k = 0; k < (layer_list[i].grid_size / layer_list[i].brush_size) + STROKE_NUMBER; k++) //+1은 단순히 더한 것 (조절 가능)
+				for (int k = 0; k < (layer_list[i].grid_size / layer_list[i].brush_size) * STROKE_NUMBER; k++) //+1은 단순히 더한 것 (조절 가능)
 				{
 					/*
 					float temp = 0; // 90도 변환을 위해서
@@ -384,7 +385,7 @@ cv::Mat stroke::paint(float T, cv::Mat& canvas, const cv::Mat& reference, const 
 							float index_x = j / (2.0 * layer_list[i].brush_size);
 							float index_y = k / (2.0 * layer_list[i].brush_size);
 
-							if (brush_vec[b_w * index_x][b_w * index_y] == 1)
+							if (brush_vec[b_w * index_x][b_w * index_y] != 255)
 							{
 								int paint_x = MARGIN + present.x + (j - (layer_list[i].brush_size));
 								int paint_y = MARGIN + present.y + (k - (layer_list[i].brush_size));
@@ -392,10 +393,10 @@ cv::Mat stroke::paint(float T, cv::Mat& canvas, const cv::Mat& reference, const 
 								if (paint_x >= canvas.cols || paint_x < 0 || paint_y < 0 || paint_y >= canvas.rows)
 									continue;
 
-
-								canvas.at<cv::Vec3b>(paint_y, paint_x)[0] = alpha_B;
-								canvas.at<cv::Vec3b>(paint_y, paint_x)[1] = alpha_G;
-								canvas.at<cv::Vec3b>(paint_y, paint_x)[2] = alpha_R;
+								float brush_alpha = 1 - (brush_vec[b_w * index_x][b_w * index_y] / 255.f); // //1-브러시 벡터의 픽셀 밝기/255
+								canvas.at<cv::Vec3b>(paint_y, paint_x)[0] = alpha_B * brush_alpha;
+								canvas.at<cv::Vec3b>(paint_y, paint_x)[1] = alpha_G * brush_alpha;
+								canvas.at<cv::Vec3b>(paint_y, paint_x)[2] = alpha_R * brush_alpha;
 							}
 
 						}

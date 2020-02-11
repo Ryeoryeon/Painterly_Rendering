@@ -7,7 +7,7 @@ cv::Mat blurring(cv::Mat & image, double g_sigma)
 {
     //가우시안 함수 벡터 계산
 
-    int size = 7;
+    int size = GAUSSIAN_SIZE;
     int kernel_width = (size - 1) / 2;
     double e_exponent = 0;
 
