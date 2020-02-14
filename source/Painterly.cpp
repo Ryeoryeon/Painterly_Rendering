@@ -55,6 +55,42 @@ std::vector<layer> stroke::Painterly_initialize()
 	return layer_list;
 }
 
+/*
+cv::Mat accumulate_image(int width, int height, const std::vector<std::vector<int>> & accum_height)
+{
+	cv::Mat accum_image;
+	accum_image.rows = height;
+	accum_image.cols = width;
+	accum_image = cv::Scalar(255, 255, 255);
+	cv::imwrite("왜안돼?.jpg", accum_image);
+	cvtColor(accum_image, accum_image, cv::COLOR_BGR2GRAY);
+
+	int max = 0; //max는 브러시가 가장 많이 쌓인 애
+
+	for (int x = 0; x < width; x++)
+	{
+		for (int y = 0; y < height; y++)
+		{
+			if (accum_height[x][y] > max)
+				max = accum_height[x][y];
+		}
+	}
+
+	for (int x = 0; x < width; x++)
+	{
+		for (int y = 0; y < height; y++)
+		{
+			if (accum_height[x][y] == 0)
+				continue;
+
+			accum_image.at<uchar>(y, x) = 255 - (255 * (accum_height[x][y]/max));
+		}
+	}
+
+	return accum_image;
+}
+*/
+
 int stroke::calculate_margin(int layer, int length)
 {
 	if (layer_list[layer].grid_size == 0) // 그냥 예외처리 하자.
@@ -67,7 +103,7 @@ int stroke::calculate_margin(int layer, int length)
 
 cv::Mat stroke::paint(float T, cv::Mat& canvas, const cv::Mat& reference, const std::vector<std::vector<int>> brush_vec, std::vector<layer>& layer_list, const std::vector<std::vector<float>>& image_etf_dx, const std::vector<std::vector<float>>& image_etf_dy)
 {
-	//가장 큰 브러시가 첫 번째 레이어에 저장되는 것을 가정
+	//가장 브러시의 반지름이 큰 브러시가 첫 번째 레이어에 저장되는 것을 가정
 
 	T *= 680; //최댓값은 180(V)+255(S)+255(H)
 	int width = reference.cols;
@@ -75,9 +111,13 @@ cv::Mat stroke::paint(float T, cv::Mat& canvas, const cv::Mat& reference, const 
 
 	std::default_random_engine r(0);
 
+	std::vector<std::vector<int>> accum_height; // 밝기를 누적하는 캔버스 사이즈의 벡터.
+	accum_height.assign(canvas.cols, std::vector<int>(canvas.rows, 0));
+
 	//가장 큰 원부터 작은 원 순서대로 돌아가야 한다.
 	for (int i = 0; i < layer_list.size(); i++)
 	{
+		cv::Mat step_canvas = cv::Mat(canvas.rows, canvas.cols, CV_8UC3, cv::Scalar(255, 255, 255));
 
 		//int temp_area_length = 2 * (layer_list[i].grid_size / 2) + 1; // 무조건 홀수가 되도록. (구조체에서 적용해줌)
 		int temp_divide_two = (layer_list[i].grid_size - 1) / 2; // 짝수/2. temp_area_length에서 (double)2로 나누게 되면 length가 짝수가 나오는 경우가 생겨 모순 발생 가능.
@@ -108,8 +148,8 @@ cv::Mat stroke::paint(float T, cv::Mat& canvas, const cv::Mat& reference, const 
 
 					for (int i = 0; i < 3; i++)
 					{
-						int canvas_color = canvas.at<cv::Vec3b>(y, x)[i];
-						int reference_color = reference.at<cv::Vec3b>(y, x)[i];
+						int canvas_color = canvas.at<cv::Vec3b>(y + MARGIN, x + MARGIN)[i];
+						int reference_color = reference.at<cv::Vec3b>(y, x)[i]; // 레퍼런스 이미지니까 늘어난 캔버스 길이만큼 안 더해줘도 o
 						RGB_index += difference(canvas_color, reference_color);
 					}
 
@@ -132,7 +172,7 @@ cv::Mat stroke::paint(float T, cv::Mat& canvas, const cv::Mat& reference, const 
 
 							for (int l = 0; l < 3; l++) // R,G,B는 모두 세 개이므로
 							{
-								int canvas_color = canvas.at<cv::Vec3b>(k, j)[l];
+								int canvas_color = canvas.at<cv::Vec3b>(k + MARGIN, j + MARGIN)[l];
 								int reference_color = reference.at<cv::Vec3b>(k, j)[l];
 								RGB_index += difference(canvas_color, reference_color);
 							}
@@ -276,10 +316,23 @@ cv::Mat stroke::paint(float T, cv::Mat& canvas, const cv::Mat& reference, const 
 							if (paint_x >= canvas.cols || paint_x < 0 || paint_y < 0 || paint_y >= canvas.rows)
 								continue;
 
-							float brush_alpha = 1 - (brush_vec[b_w * index_x][b_w * index_y] / 255.f); // //1-브러시 벡터의 픽셀 밝기/255
-							canvas.at<cv::Vec3b>(paint_y, paint_x)[0] = alpha_B * brush_alpha;
-							canvas.at<cv::Vec3b>(paint_y, paint_x)[1] = alpha_G * brush_alpha;
-							canvas.at<cv::Vec3b>(paint_y, paint_x)[2] = alpha_R * brush_alpha;
+							float brush_alpha_B = (canvas.at<cv::Vec3b>(paint_y, paint_x)[0] - alpha_B) * (brush_vec[b_w * index_x][b_w * index_y] / 255.f);
+							float brush_alpha_G = (canvas.at<cv::Vec3b>(paint_y, paint_x)[1] - alpha_G) * (brush_vec[b_w * index_x][b_w * index_y] / 255.f);
+							float brush_alpha_R = (canvas.at<cv::Vec3b>(paint_y, paint_x)[2] - alpha_R) * (brush_vec[b_w * index_x][b_w * index_y] / 255.f);
+
+							canvas.at<cv::Vec3b>(paint_y, paint_x)[0] = alpha_B;
+							canvas.at<cv::Vec3b>(paint_y, paint_x)[1] = alpha_G;
+							canvas.at<cv::Vec3b>(paint_y, paint_x)[2] = alpha_R;
+
+							//누적이 아닌 해당 단계만 칠해진 캔버스 저장용
+							step_canvas.at<cv::Vec3b>(paint_y, paint_x)[0] = alpha_B;
+							step_canvas.at<cv::Vec3b>(paint_y, paint_x)[1] = alpha_G;
+							step_canvas.at<cv::Vec3b>(paint_y, paint_x)[2] = alpha_R;
+
+							float bri = (alpha_R + alpha_G + alpha_B) / 3.f;
+
+							accum_height[paint_x][paint_y] += bri;
+
 						}
 
 					}
@@ -393,10 +446,27 @@ cv::Mat stroke::paint(float T, cv::Mat& canvas, const cv::Mat& reference, const 
 								if (paint_x >= canvas.cols || paint_x < 0 || paint_y < 0 || paint_y >= canvas.rows)
 									continue;
 
-								float brush_alpha = 1 - (brush_vec[b_w * index_x][b_w * index_y] / 255.f); // //1-브러시 벡터의 픽셀 밝기/255
-								canvas.at<cv::Vec3b>(paint_y, paint_x)[0] = alpha_B * brush_alpha;
-								canvas.at<cv::Vec3b>(paint_y, paint_x)[1] = alpha_G * brush_alpha;
-								canvas.at<cv::Vec3b>(paint_y, paint_x)[2] = alpha_R * brush_alpha;
+								//음수 나오는 거 생각도 해 줘야 함.
+
+								float brush_rate = brush_vec[b_w * index_x][b_w * index_y] / 255.f;
+
+								float brush_alpha_B = (canvas.at<cv::Vec3b>(paint_y, paint_x)[0] - alpha_B) * brush_rate;
+								float brush_alpha_G = (canvas.at<cv::Vec3b>(paint_y, paint_x)[1] - alpha_G) * brush_rate;
+								float brush_alpha_R = (canvas.at<cv::Vec3b>(paint_y, paint_x)[2] - alpha_R) * brush_rate;
+
+								canvas.at<cv::Vec3b>(paint_y, paint_x)[0] = alpha_B;
+								canvas.at<cv::Vec3b>(paint_y, paint_x)[1] = alpha_G;
+								canvas.at<cv::Vec3b>(paint_y, paint_x)[2] = alpha_R;
+
+								//누적이 아닌 해당 단계만 칠해진 캔버스 저장용
+								step_canvas.at<cv::Vec3b>(paint_y, paint_x)[0] = alpha_B;
+								step_canvas.at<cv::Vec3b>(paint_y, paint_x)[1] = alpha_G;
+								step_canvas.at<cv::Vec3b>(paint_y, paint_x)[2] = alpha_R;
+
+								float bri = (alpha_R + alpha_G + alpha_B) / 3.f;
+
+								accum_height[paint_x][paint_y] += bri;
+
 							}
 
 						}
@@ -433,39 +503,56 @@ cv::Mat stroke::paint(float T, cv::Mat& canvas, const cv::Mat& reference, const 
 
 		}
 
-		cv::Mat canvas_BGR;
+		//cv::Mat canvas_BGR;
 
-		if (i == 0)
-		{
-			cv::cvtColor(canvas, canvas_BGR, cv::COLOR_HSV2BGR);
-			cv::imwrite("0.jpg", canvas); // [HSV] HSV로 convert 하지 않고 중간과정을 저장할 때
-			//cv::imwrite("0.jpg", canvas_BGR); // HSV로 convert하고 중간과정을 저장할 때
-		}
+		std::string str = std::to_string(i);
+		str += ".jpg";
+		std::cout << str << '\n';
+		//cv::cvtColor(canvas, canvas_BGR, cv::COLOR_HSV2BGR);
+		cv::imwrite(str, canvas); // [HSV] HSV로 convert 하지 않고 중간과정을 저장할 때
+		//cv::imwrite("0.jpg", canvas_BGR); // HSV로 convert하고 중간과정을 저장할 때
 
-		else if (i == 1)
-		{
-			cv::cvtColor(canvas, canvas_BGR, cv::COLOR_HSV2BGR);
-			cv::imwrite("1.jpg", canvas);
-			//cv::imwrite("1.jpg", canvas_BGR);
-		}
-
-		else if (i == 2)
-		{
-			cv::cvtColor(canvas, canvas_BGR, cv::COLOR_HSV2BGR);
-			cv::imwrite("2.jpg", canvas);
-			//cv::imwrite("2.jpg", canvas_BGR);
-		}
-
-		else if (i == 3)
-		{
-			cv::cvtColor(canvas, canvas_BGR, cv::COLOR_HSV2BGR);
-			cv::imwrite("3.jpg", canvas);
-			//cv::imwrite("3.jpg", canvas_BGR);
-		}
-
+		std::string str2 = "step";
+		str2 += std::to_string(i);
+		str2 += ".jpg";
+		cv::imwrite(str2, step_canvas);
 
 	}
 
+	//높이 저장 이미지
+	//cv::Mat accum_image = accumulate_image(canvas.cols, canvas.rows, accum_height);
+
+	cv::Mat accum_image = canvas;
+	accum_image = cv::Scalar(255, 255, 255);
+	cvtColor(accum_image, accum_image, cv::COLOR_BGR2GRAY);
+
+	int max = 0; //max는 브러시가 가장 많이 쌓인 애
+
+	for (int x = 0; x < canvas.cols; x++)
+	{
+		for (int y = 0; y < canvas.rows; y++)
+		{
+			if (accum_height[x][y] > max)
+				max = accum_height[x][y];
+
+		}
+	}
+
+	for (int x = 0; x < canvas.cols; x++)
+	{
+		for (int y = 0; y < canvas.rows; y++)
+		{
+			if (accum_height[x][y] == 0)
+				continue;
+
+			accum_image.at<uchar>(y, x) = 255 - (255 * ((float)accum_height[x][y] / max));
+
+
+		}
+	}
+
+	cv::imwrite("accumulate.jpg", accum_image);
+	
 	return canvas;
 }
 

@@ -31,9 +31,10 @@ int main()
 	}
 
 
-	//cv::Mat image = cv::imread("landscape.jpg");
+	cv::Mat image = cv::imread("landscape.jpg");
 	//cv::Mat image = cv::imread("gra_2.png");
-	cv::Mat image = cv::imread("lenna.jpg");
+	//cv::Mat image = cv::imread("lenna.jpg");
+	//cv::Mat image = cv::imread("cloud.jpeg");
 	int height = image.rows;
 	int width = image.cols;
 
@@ -45,13 +46,15 @@ int main()
 
 	cv::resize(canvas, canvas, cv::Size(width + 2*MARGIN, height + 2*MARGIN), 0, 0);
 
-	//cv::Mat blur_image = cv::imread("landscape.jpg");
-	cv::Mat blur_image = cv::imread("lenna.jpg");
+	cv::Mat blur_image = cv::imread("landscape.jpg");
+	//cv::Mat blur_image = cv::imread("lenna.jpg");
+	//cv::Mat blur_image = cv::imread("cloud.jpeg");
 	//cv::Mat blur_image = cv::imread("gra_2.png");
 
 	FILE* etf;
-	//etf = fopen("landscape.etf", "rb");
-	etf = fopen("lenna_2.etf", "rb");
+	etf = fopen("landscape.etf", "rb");
+	//etf = fopen("lenna_2.etf", "rb");
+	//etf = fopen("cloud.etf", "rb");
 	//etf = fopen("gra_2.etf", "rb");
 
 	if (etf == NULL)
@@ -111,15 +114,13 @@ int main()
 
 	int choice;
 	std::cin >> choice;
-	
+
 	if (choice == 1)
 		blur_image = blurring(blur_image, GAUSSIAN_SIGMA);
 
-	else if (choice == 2) {
+	else if (choice == 2)
 		blur_image = Bilateral_filtering(image);
-		cv::imshow("Bilateral", blur_image);
-		cv::waitKey(0);
-	}
+
 
 	else
 	{
@@ -143,7 +144,7 @@ int main()
 
 	//int layer_num = circle.get_layersize();
 	//레이어의 개수만큼 페인트칠 단계가 필요
-	float T = 0.05;
+	float T = 0.2;
 	canvas = circle.paint(T, canvas, blur_image, brush_vec, circle.layer_list, image_etf_dx, image_etf_dy);
 
 	// cvtColor(canvas, canvas, cv::COLOR_HSV2BGR); // [HSV] HSV설정을 위해서라면 각주 풀기
