@@ -3,6 +3,7 @@
 #include <opencv2/opencv.hpp>
 #include "Painterly.h"
 #include <vector>
+#include <opencv2/saliency/saliencySpecializedClasses.hpp> // saliency를 쓰기 위해 추가해야 하는 헤더파일
 
 
 int main()
@@ -31,29 +32,29 @@ int main()
 	}
 
 
-	cv::Mat image = cv::imread("landscape.jpg");
+	//cv::Mat image = cv::imread("landscape.jpg");
 	//cv::Mat image = cv::imread("gra_2.png");
-	//cv::Mat image = cv::imread("lenna.jpg");
+	cv::Mat image = cv::imread("lenna.jpg");
 	//cv::Mat image = cv::imread("cloud.jpeg");
 	int height = image.rows;
 	int width = image.cols;
 
-	cv::Mat canvas = cv::imread("empty_canvas_2.jpg");
-	//cv::Mat canvas = cv::imread("empty_canvas_3.jpg");
+	cv::Mat canvas = cv::imread("empty_canvas_final.png");
+	//cv::Mat canvas = cv::imread("empty_canvas_2.jpg");
 	//cv::Mat canvas = cv::imread("Newsprint.jpg");
 	//cv::Mat canvas = cv::imread("Washi.jpg");
 	//canvas = cv::Scalar(255, 255, 255); // 캔버스가 흰색 단색이었으면 좋겠을 때
 
 	cv::resize(canvas, canvas, cv::Size(width + 2*MARGIN, height + 2*MARGIN), 0, 0);
 
-	cv::Mat blur_image = cv::imread("landscape.jpg");
-	//cv::Mat blur_image = cv::imread("lenna.jpg");
+	//cv::Mat blur_image = cv::imread("landscape.jpg");
+	cv::Mat blur_image = cv::imread("lenna.jpg");
 	//cv::Mat blur_image = cv::imread("cloud.jpeg");
 	//cv::Mat blur_image = cv::imread("gra_2.png");
 
 	FILE* etf;
-	etf = fopen("landscape.etf", "rb");
-	//etf = fopen("lenna_2.etf", "rb");
+	//etf = fopen("landscape.etf", "rb");
+	etf = fopen("lenna_2.etf", "rb");
 	//etf = fopen("cloud.etf", "rb");
 	//etf = fopen("gra_2.etf", "rb");
 
@@ -61,6 +62,13 @@ int main()
 	{
 		exit(1);
 	}
+
+	cv::Mat saliency_output;
+
+	cv::saliency::StaticSaliencySpectralResidual Sal;
+	Sal.computeSaliency(image, saliency_output);
+
+	
 
 ;	float* buffer = new float[2 * width * height]; // 벡터로 하니까 안 된다.
 	std::vector<std::vector<float>> image_etf_dx;
@@ -103,11 +111,6 @@ int main()
 
 	fclose(etf);
 
-	/*
-	double g_sigma; // 가우시안 블러링함수 시그마
-	std::cout << "가우시안 시그마값 입력하기 : ";
-	std::cin >> g_sigma;
-	*/
 	std::cout << "레퍼런스 이미지 선택하기" << '\n';
 	std::cout << "1번 : Gaussian blurring" << '\n';
 	std::cout << "2번 : Bilateral filtering" << '\n';
@@ -128,28 +131,15 @@ int main()
 		return 1;
 	}
 
-	/* // [HSV] HSV설정을 위해서라면 각주 풀기
-	cvtColor(canvas, canvas, cv::COLOR_BGR2HSV); // 색 랜덤 변형을 위해 넣은 코드.
-	cvtColor(blur_image, blur_image, cv::COLOR_BGR2HSV);
-	*/
-
-
 	int layer_num;
 	std::cout << "레이어의 개수(브러시의 개수) 입력하기 :";
 	std::cin >> layer_num;
 	circle.put_layersize(layer_num);
 
 	circle.layer_list = circle.Painterly_initialize();
-	//마진 계산 함수 더 효율적으로 계산시키기
 
-	//int layer_num = circle.get_layersize();
-	//레이어의 개수만큼 페인트칠 단계가 필요
 	float T = 0.2;
-	canvas = circle.paint(T, canvas, blur_image, brush_vec, circle.layer_list, image_etf_dx, image_etf_dy);
-
-	// cvtColor(canvas, canvas, cv::COLOR_HSV2BGR); // [HSV] HSV설정을 위해서라면 각주 풀기
-	//cv::imshow("Painterly_Rendering", canvas);
-	//cv::waitKey(0);
+	canvas = circle.paint(T, saliency_output, canvas, blur_image, brush_vec, circle.layer_list, image_etf_dx, image_etf_dy);
 
 	return 0;
 }

@@ -4,7 +4,7 @@
 
 static int MARGIN = 30;
 static int STROKE_NUMBER = 20;
-static float ALPHA = 0.5f;
+static float ALPHA = 0.7f;
 static float GAUSSIAN_SIGMA = 3;
 static int GAUSSIAN_SIZE = 7;
 
@@ -31,7 +31,7 @@ public:
 	std::vector<layer> Painterly_initialize();
 	std::vector<layer> layer_list; // 나중에 접근함수 만들어서 바꿔주기
 	//std::vector<cv::Point_<int>> dot_list;
-	cv::Mat paint(float T, cv::Mat& canvas, const cv::Mat& reference, const std::vector<std::vector<int>> brush, std::vector<layer>& layer_list, const std::vector<std::vector<float>> & image_etf_dx, const std::vector<std::vector<float>>& image_etf_dy);
+	cv::Mat paint(float T, const cv::Mat& saliency_output, cv::Mat& canvas, const cv::Mat& reference, const std::vector<std::vector<int>> brush, std::vector<layer>& layer_list, const std::vector<std::vector<float>> & image_etf_dx, const std::vector<std::vector<float>>& image_etf_dy);
 	int calculate_margin(int layer, int length);
 
 	int get_layersize() { return layer_size; };
