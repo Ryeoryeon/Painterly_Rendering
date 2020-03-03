@@ -14,8 +14,8 @@ int main()
 	//cv::Mat brush = cv::imread("brush_1.png", cv::IMREAD_GRAYSCALE);
 	//cv::Mat brush = cv::imread("brush_2.png", cv::IMREAD_GRAYSCALE);
 	//cv::Mat brush = cv::imread("brush_3.png", cv::IMREAD_GRAYSCALE);
-	//cv::Mat brush = cv::imread("airbrush.png", cv::IMREAD_GRAYSCALE);
-	cv::Mat brush = cv::imread("airbrush_2.png", cv::IMREAD_GRAYSCALE);
+	//cv::Mat brush = cv::imread("airbrush_2.png", cv::IMREAD_GRAYSCALE);
+	cv::Mat brush = cv::imread("airbrush_4.png", cv::IMREAD_GRAYSCALE);
 
 	int b_w = brush.cols;
 
@@ -68,6 +68,13 @@ int main()
 	cv::saliency::StaticSaliencySpectralResidual Sal;
 	Sal.computeSaliency(image, saliency_output);
 
+	//뻗는지 확인하기 위해 넣은 코드
+	cv::Mat grad_x = cv::Mat::zeros(cv::Size(width, height), CV_32FC1);
+	cv::Mat grad_y = cv::Mat::zeros(cv::Size(width, height), CV_32FC1);
+
+	cv::Sobel(image, grad_x, CV_32FC1, 1, 0, 5);     // x 방향
+	cv::Sobel(image, grad_y, CV_32FC1, 0, 1, 5);     // y 방향
+	//뻗 확인 끝
 	
 
 ;	float* buffer = new float[2 * width * height]; // 벡터로 하니까 안 된다.
@@ -138,8 +145,8 @@ int main()
 
 	circle.layer_list = circle.Painterly_initialize();
 
-	float T = 0.2;
-	canvas = circle.paint(T, saliency_output, canvas, blur_image, brush_vec, circle.layer_list, image_etf_dx, image_etf_dy);
+	float T = 0.15;
+	canvas = circle.paint_airbrush(T, saliency_output, canvas, blur_image, brush_vec, circle.layer_list, image_etf_dx, image_etf_dy);
 
 	return 0;
 }
