@@ -11,11 +11,11 @@ int main()
 
 	stroke circle;
 
-	cv::Mat brush = cv::imread("brush_1.png", cv::IMREAD_GRAYSCALE);
+	//cv::Mat brush = cv::imread("brush_1.png", cv::IMREAD_GRAYSCALE);
 	//cv::Mat brush = cv::imread("brush_2.png", cv::IMREAD_GRAYSCALE);
 	//cv::Mat brush = cv::imread("brush_3.png", cv::IMREAD_GRAYSCALE);
 	//cv::Mat brush = cv::imread("airbrush.png", cv::IMREAD_GRAYSCALE);
-	//cv::Mat brush = cv::imread("airbrush_2.png", cv::IMREAD_GRAYSCALE);
+	cv::Mat brush = cv::imread("airbrush_2.png", cv::IMREAD_GRAYSCALE);
 
 	int b_w = brush.cols;
 
