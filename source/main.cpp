@@ -33,8 +33,9 @@ int main()
 
 
 	//cv::Mat image = cv::imread("landscape.jpg");
-	//cv::Mat image = cv::imread("gra_2.png");
-	cv::Mat image = cv::imread("lenna.jpg");
+	//cv::Mat image = cv::imread("lenna.jpg");
+	cv::Mat image = cv::imread("lenna1_crop.jpg");
+	//cv::Mat image = cv::imread("Cat.jpg");
 	//cv::Mat image = cv::imread("cloud.jpeg");
 	int height = image.rows;
 	int width = image.cols;
@@ -48,15 +49,17 @@ int main()
 	cv::resize(canvas, canvas, cv::Size(width + 2*MARGIN, height + 2*MARGIN), 0, 0);
 
 	//cv::Mat blur_image = cv::imread("landscape.jpg");
-	cv::Mat blur_image = cv::imread("lenna.jpg");
+	// cv::Mat blur_image = cv::imread("lenna.jpg");
+	cv::Mat blur_image = cv::imread("lenna1_crop.jpg");
+	//cv::Mat blur_image = cv::imread("Cat.jpg");
 	//cv::Mat blur_image = cv::imread("cloud.jpeg");
-	//cv::Mat blur_image = cv::imread("gra_2.png");
 
 	FILE* etf;
 	//etf = fopen("landscape.etf", "rb");
 	etf = fopen("lenna_2.etf", "rb");
+	//etf = fopen("lenna1_crop.etf", "rb");
+	//etf = fopen("Cat.etf", "rb");
 	//etf = fopen("cloud.etf", "rb");
-	//etf = fopen("gra_2.etf", "rb");
 
 	if (etf == NULL)
 	{
@@ -145,7 +148,7 @@ int main()
 
 	circle.layer_list = circle.Painterly_initialize();
 
-	float T = 0.15;
+	float T = 0.1;
 	canvas = circle.paint_airbrush(T, saliency_output, canvas, blur_image, brush_vec, circle.layer_list, image_etf_dx, image_etf_dy);
 
 	return 0;
