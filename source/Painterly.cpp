@@ -55,42 +55,6 @@ std::vector<layer> stroke::Painterly_initialize()
 	return layer_list;
 }
 
-/*
-cv::Mat accumulate_image(int width, int height, const std::vector<std::vector<int>> & accum_height)
-{
-	cv::Mat accum_image;
-	accum_image.rows = height;
-	accum_image.cols = width;
-	accum_image = cv::Scalar(255, 255, 255);
-	cv::imwrite("왜안돼?.jpg", accum_image);
-	cvtColor(accum_image, accum_image, cv::COLOR_BGR2GRAY);
-
-	int max = 0; //max는 브러시가 가장 많이 쌓인 애
-
-	for (int x = 0; x < width; x++)
-	{
-		for (int y = 0; y < height; y++)
-		{
-			if (accum_height[x][y] > max)
-				max = accum_height[x][y];
-		}
-	}
-
-	for (int x = 0; x < width; x++)
-	{
-		for (int y = 0; y < height; y++)
-		{
-			if (accum_height[x][y] == 0)
-				continue;
-
-			accum_image.at<uchar>(y, x) = 255 - (255 * (accum_height[x][y]/max));
-		}
-	}
-
-	return accum_image;
-}
-*/
-
 int stroke::calculate_margin(int layer, int length)
 {
 	if (layer_list[layer].grid_size == 0) // 그냥 예외처리 하자.
@@ -106,7 +70,6 @@ cv::Mat stroke::paint_airbrush(float T, const cv::Mat& saliency_output, cv::Mat&
 {
 	//가장 브러시의 반지름이 큰 브러시가 첫 번째 레이어에 저장되는 것을 가정
 
-	T *= 680; //최댓값은 180(V)+255(S)+255(H)
 	int width = reference.cols;
 	int height = reference.rows;
 
@@ -114,6 +77,8 @@ cv::Mat stroke::paint_airbrush(float T, const cv::Mat& saliency_output, cv::Mat&
 
 	std::vector<std::vector<int>> accum_height; // 밝기를 누적하는 캔버스 사이즈의 벡터.
 	accum_height.assign(canvas.cols, std::vector<int>(canvas.rows, 0));
+
+	T *= 255.f;
 
 	//가장 큰 원부터 작은 원 순서대로 돌아가야 한다.
 	for (int i = 0; i < layer_list.size(); i++)
@@ -146,7 +111,9 @@ cv::Mat stroke::paint_airbrush(float T, const cv::Mat& saliency_output, cv::Mat&
 				int RGB_diff = 0; // 영역 전체에 대한 canvas값과 reference image에 대한 RGB 차이의 합을 구할 때 쓰이는 인덱스
 				int RGB_index = 0; // 그리드의 한 칸에 대해 R,G,B값에 대한 차이값을 더한 인덱스
 
-				//그리드가 한칸일 때
+				int pixel_number;
+
+				//'그리드'가 한칸일 때
 				if (layer_list[i].grid_size <= 1) // if가 성립되면 무조건 그리드 사이즈가 1.
 				{
 
@@ -160,6 +127,7 @@ cv::Mat stroke::paint_airbrush(float T, const cv::Mat& saliency_output, cv::Mat&
 
 					average_brightness = saliency_output.at<float>(y, x);
 					area_error = RGB_index;
+					pixel_number = 1;
 
 				}
 
@@ -169,7 +137,7 @@ cv::Mat stroke::paint_airbrush(float T, const cv::Mat& saliency_output, cv::Mat&
 					int index_x = x - temp_divide_two;
 					int index_y = y - temp_divide_two;
 
-					int pixel_number = 0; // 평균 밝기를 구하기 위해
+					pixel_number = 0; // 평균 밝기를 구하기 위해
 
 					//임시 공간 전체에 대해 캔버스와 블러 이미지에 대한 R,G,B값 차이를 구해야 한다. (x,y가 그리드의 센터일 때를 기준)
 					for (int j = x - (temp_divide_two); j <= x + (temp_divide_two); j++) // 등호 붙이는게 맞는듯
@@ -192,14 +160,19 @@ cv::Mat stroke::paint_airbrush(float T, const cv::Mat& saliency_output, cv::Mat&
 						}
 					}
 
-					area_error = (RGB_diff / (pow(layer_list[i].grid_size, 2))); // 단순히 레이어의 grid_size^2를 빼면 안될것같음.
+					RGB_diff /= 3.f; //R,G,B관점에서 평균적인 색의 차이를 구하기 위해서
+					area_error = (RGB_diff / pixel_number);
+					//area_error = (RGB_diff / (pow(layer_list[i].grid_size, 2))); (원래 코드)
+					int avg_bri = average_brightness;
 					average_brightness /= (float)pixel_number;
 				}
 
-
 				if (i >= (layer_size * (2 / 3.f))) // 후반 레이어
 				{
-					if (area_error <= ((1 / 255.f) * (255 - average_brightness)) * T)
+					// saliency_image에서 그 영역의 평균 밝기가 높을수록 T에 관대하게 작용해야 한다.
+					// average_brightness가 255라면 area_error <=0 일 때만 칠하지 않는다.
+					// 0이라면 다 안칠해짐.
+					if (area_error <= (((1 / 255.f) * (255 - average_brightness)) * T))
 					{
 						continue;
 					}
