@@ -8,14 +8,19 @@
 
 int main()
 {
-
 	stroke circle;
+
+	std::cout << "Saliency Image와 단계 이미지들, height map 저장을 원하시면 1을, 원하지 않으시면 다른 숫자를 선택해 주세요." << '\n';
+	int op;
+	std::cin >> op;
+	circle.put_option(op);
 
 	//cv::Mat brush = cv::imread("brush_1.png", cv::IMREAD_GRAYSCALE);
 	//cv::Mat brush = cv::imread("brush_2.png", cv::IMREAD_GRAYSCALE);
 	//cv::Mat brush = cv::imread("brush_3.png", cv::IMREAD_GRAYSCALE);
 	//cv::Mat brush = cv::imread("airbrush_2.png", cv::IMREAD_GRAYSCALE);
-	cv::Mat brush = cv::imread("airbrush_4.png", cv::IMREAD_GRAYSCALE);
+	cv::Mat brush = cv::imread("airbrush_3.png", cv::IMREAD_GRAYSCALE);
+	//cv::Mat brush = cv::imread("rough_brush.png", cv::IMREAD_GRAYSCALE);
 
 	int b_w = brush.cols;
 
@@ -33,10 +38,13 @@ int main()
 
 
 	//cv::Mat image = cv::imread("landscape.jpg");
+	//cv::Mat image = cv::imread("duck.jpg");
+	cv::Mat image = cv::imread("duck_2.jpg");
 	//cv::Mat image = cv::imread("lenna.jpg");
-	cv::Mat image = cv::imread("lenna1_crop.jpg");
+	//cv::Mat image = cv::imread("lenna1_crop.jpg");
 	//cv::Mat image = cv::imread("Cat.jpg");
-	//cv::Mat image = cv::imread("cloud.jpeg");
+	//cv::Mat image = cv::imread("Cat_2.jpg");
+	//cv::Mat image = cv::imread("Sky.jpg");
 	int height = image.rows;
 	int width = image.cols;
 
@@ -49,17 +57,23 @@ int main()
 	cv::resize(canvas, canvas, cv::Size(width + 2*MARGIN, height + 2*MARGIN), 0, 0);
 
 	//cv::Mat blur_image = cv::imread("landscape.jpg");
+	//cv::Mat blur_image = cv::imread("duck.jpg");
+	cv::Mat blur_image = cv::imread("duck_2.jpg");
 	// cv::Mat blur_image = cv::imread("lenna.jpg");
-	cv::Mat blur_image = cv::imread("lenna1_crop.jpg");
+	//cv::Mat blur_image = cv::imread("lenna1_crop.jpg");
 	//cv::Mat blur_image = cv::imread("Cat.jpg");
-	//cv::Mat blur_image = cv::imread("cloud.jpeg");
+	//cv::Mat blur_image = cv::imread("Cat_2.jpg");
+	//cv::Mat blur_image = cv::imread("Sky.jpg");
 
 	FILE* etf;
 	//etf = fopen("landscape.etf", "rb");
-	etf = fopen("lenna_2.etf", "rb");
+	//etf = fopen("duck.etf", "rb");
+	etf = fopen("duck_2.etf", "rb");
+	//etf = fopen("lenna_2.etf", "rb");
 	//etf = fopen("lenna1_crop.etf", "rb");
 	//etf = fopen("Cat.etf", "rb");
-	//etf = fopen("cloud.etf", "rb");
+	//etf = fopen("Cat_2.etf", "rb");
+	//etf = fopen("Sky.etf", "rb");
 
 	if (etf == NULL)
 	{
@@ -71,14 +85,12 @@ int main()
 	cv::saliency::StaticSaliencySpectralResidual Sal;
 	Sal.computeSaliency(image, saliency_output);
 
-	//뻗는지 확인하기 위해 넣은 코드
-	cv::Mat grad_x = cv::Mat::zeros(cv::Size(width, height), CV_32FC1);
-	cv::Mat grad_y = cv::Mat::zeros(cv::Size(width, height), CV_32FC1);
-
-	cv::Sobel(image, grad_x, CV_32FC1, 1, 0, 5);     // x 방향
-	cv::Sobel(image, grad_y, CV_32FC1, 0, 1, 5);     // y 방향
-	//뻗 확인 끝
-	
+	if ( op == 1)
+	{
+		cv::imshow("f", saliency_output);
+		cv::waitKey(0);
+		//cv::imwrite("ff.png", saliency_output); //흐헝 이미지로 저장이 안된다ㅠㅠ 일단 캡쳐하자..)
+	}
 
 ;	float* buffer = new float[2 * width * height]; // 벡터로 하니까 안 된다.
 	std::vector<std::vector<float>> image_etf_dx;

@@ -3,7 +3,7 @@
 #include <vector>
 
 static int MARGIN = 30;
-static int STROKE_NUMBER = 20;
+static int STROKE_NUMBER = 5;
 static float ALPHA = 0.7f;
 static float GAUSSIAN_SIGMA = 3;
 static int GAUSSIAN_SIZE = 7;
@@ -25,6 +25,7 @@ struct layer
 class stroke
 {
 	int layer_size;
+	int option;
 
 
 public:
@@ -37,6 +38,8 @@ public:
 
 	int get_layersize() { return layer_size; };
 	void put_layersize(int input_lay) { layer_size = input_lay; }
+	int get_option() { return option; }
+	void put_option(int op) { option = op; }
 	void push_back(int brush_size, double f_g, int grid) { layer_list.push_back(layer(brush_size, f_g, grid)); }
 
 };

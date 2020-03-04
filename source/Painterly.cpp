@@ -243,34 +243,78 @@ cv::Mat stroke::paint_airbrush(float T, const cv::Mat& saliency_output, cv::Mat&
 		for (int u = 0; u < new_stroke_list.size(); u++)
 		{
 			//new_stroke_list에 저장된 점을 시작점으로 가정하고 코드를 작성하자.
+			//필요 없나?
+			/*
 			int ref_color_B = reference.at<cv::Vec3b>(new_stroke_list[u].y, new_stroke_list[u].x)[0];
 			int ref_color_G = reference.at<cv::Vec3b>(new_stroke_list[u].y, new_stroke_list[u].x)[1];
 			int ref_color_R = reference.at<cv::Vec3b>(new_stroke_list[u].y, new_stroke_list[u].x)[2];
+			*/
 
 
-			//그리드 사이즈보다 브러시 사이즈가 크거나 같을 때는 점 한번만 찍히도록.
-			if (layer_list[i].brush_size >= layer_list[i].grid_size)
+			//그리드 사이즈보다 브러시 사이즈가 크거나 같을 때는 점 한번만 찍히도록. -> 교수님께서 그냥 길게 출력되도록 바꾸라고 하셨다.
+
+			//에어브러시를 적용하려면 스트로크 구성 픽셀들에 대해 얼마만큼의 '알파'로 칠할지 저장할 벡터가 필요하다.
+			std::vector<std::vector<float>> stroke_alpha;
+			stroke_alpha.assign(canvas.cols, std::vector<float>(canvas.rows, 0));
+
+
+			cv::Point_<float> lastDxDy(0, 0); // 지난 dx, dy
+			cv::Point_<float> present(new_stroke_list[u].x, new_stroke_list[u].y); // 현재 x,y의 위치
+			cv::Point_<float> DxDy(image_etf_dx[int(present.x + 0.5f)][int(present.y + 0.5)], image_etf_dy[int(present.x + 0.5)][int(present.y + 0.5)]); // 현재 x,y의 dx,dy
+			//0.5는 반올림
+
+			std::vector<std::vector<int>> imsi_accum_height; // 임시 벡터. 각 스트로크에서 밝기값을 저장하는 벡터. (중복 방지를 위해)
+			imsi_accum_height.assign(canvas.cols, std::vector<int>(canvas.rows, 0));
+
+			cv::Mat saved_canvas = canvas.clone(); // 스트로크를 찍기 전 상황을 저장하는 캔버스. clone함수를 써 줘야 상황'만' 복제가 된다!!
+
+			int ref_color_B = reference.at<cv::Vec3b>(int(present.y + 0.5), int(present.x + 0.5))[0];
+			int ref_color_G = reference.at<cv::Vec3b>(int(present.y + 0.5), int(present.x + 0.5))[1];
+			int ref_color_R = reference.at<cv::Vec3b>(int(present.y + 0.5), int(present.x + 0.5))[2];
+
+			//스트로크 알파 벡터 구성하고 칠하기 
+			//일단 k를 제어하는 최댓값은 상수로 고정. (나중에 수정해야함)
+
+			float for_num = 0;
+
+			if (layer_list[i].grid_size > 1)
+				for_num = layer_list[i].grid_size * STROKE_NUMBER;
+
+			else
+				for_num = STROKE_NUMBER / 2.f;
+
+			for (int k = 0; k < for_num; k++)
 			{
 
-				int alpha_B = ((1-ALPHA) * canvas.at<cv::Vec3b>(MARGIN + new_stroke_list[u].y, MARGIN + new_stroke_list[u].x)[0]) + (ALPHA * ref_color_B);
-				int alpha_G = ((1-ALPHA) * canvas.at<cv::Vec3b>(MARGIN + new_stroke_list[u].y, MARGIN + new_stroke_list[u].x)[1]) + (ALPHA * ref_color_G);
-				int alpha_R = ((1-ALPHA) * canvas.at<cv::Vec3b>(MARGIN + new_stroke_list[u].y, MARGIN + new_stroke_list[u].x)[2]) + (ALPHA * ref_color_R);
+				int canvas_diff = 0; // 레퍼런스 - 캔버스의 색 차이 저장 변수
+				int stroke_diff = 0; // 레퍼런스 - 현재 스트로크의 색 차이 저장 변수
 
-				float alpha_H, alpha_S, alpha_V;
+				for (int l = 0; l < 3; l++)
+				{
+					canvas_diff += difference(canvas.at<cv::Vec3b>(int(present.y + 0.5), int(present.x + 0.5))[l], reference.at<cv::Vec3b>(int(present.y + 0.5), int(present.x + 0.5))[l]);
+				}
 
-				//HSV 변환 함수
-				dw_RGB2HSV(alpha_R, alpha_G, alpha_B, alpha_H, alpha_S, alpha_V);
+				stroke_diff += difference(ref_color_B, reference.at<cv::Vec3b>(int(present.y + 0.5), int(present.x + 0.5))[0]);
+				stroke_diff += difference(ref_color_G, reference.at<cv::Vec3b>(int(present.y + 0.5), int(present.x + 0.5))[1]);
+				stroke_diff += difference(ref_color_R, reference.at<cv::Vec3b>(int(present.y + 0.5), int(present.x + 0.5))[2]);
 
-				// [HSV] (H,S,V로 랜덤을 주고 싶다면 이 각주를 풀고 메인 함수, imwrite의 cvtcolor각주 풀기)
-				alpha_H = random_alpha_H(alpha_H);
-				alpha_S = random_alpha_S(alpha_S);
-				alpha_V = random_alpha_V(alpha_V);
+				if (canvas_diff < stroke_diff) // 레퍼런스-캔버스 < 레퍼런스-현재 스트로크의 색깔이면 종료.
+					break;
 
-				//RGB 변환 함수
-				dw_HSV2RGB(alpha_H, alpha_S, alpha_V, alpha_R, alpha_G, alpha_B);
+				if (DxDy.x == 0 && DxDy.y == 0)
+					break;
 
-				// 원이 아닌 진짜 브러시 패턴으로 찍어주기 위한 작업
-				int b_w = 100; // 임시
+				if (lastDxDy.x * DxDy.x + lastDxDy.y * DxDy.y < 0)
+				{
+					DxDy.x *= -1;
+					DxDy.y *= -1;
+
+				}
+
+				if (!(getFlowVectorRK4(width, height, present.x, present.y, DxDy.x, DxDy.y, image_etf_dx, image_etf_dy)))
+					break;
+
+				int b_w = 100; // 어차피 brush image의 크기는 100*100으로 고정이므로
 
 				for (int j = 0; j < 2 * layer_list[i].brush_size; j++)
 				{
@@ -283,197 +327,94 @@ cv::Mat stroke::paint_airbrush(float T, const cv::Mat& saliency_output, cv::Mat&
 
 						if (brush_vec[b_w * index_x][b_w * index_y] != 255)
 						{
-							int paint_x = MARGIN + new_stroke_list[u].x + (j - (layer_list[i].brush_size));
-							int paint_y = MARGIN + new_stroke_list[u].y + (k - (layer_list[i].brush_size));
+							int paint_x = MARGIN + int(present.x + 0.5) + (j - (layer_list[i].brush_size));
+							int paint_y = MARGIN + int(present.y + 0.5) + (k - (layer_list[i].brush_size));
 
 							if (paint_x >= canvas.cols || paint_x < 0 || paint_y < 0 || paint_y >= canvas.rows)
 								continue;
 
-							float brush_alpha_B = (canvas.at<cv::Vec3b>(paint_y, paint_x)[0] - alpha_B) * (brush_vec[b_w * index_x][b_w * index_y] / 255.f);
-							float brush_alpha_G = (canvas.at<cv::Vec3b>(paint_y, paint_x)[1] - alpha_G) * (brush_vec[b_w * index_x][b_w * index_y] / 255.f);
-							float brush_alpha_R = (canvas.at<cv::Vec3b>(paint_y, paint_x)[2] - alpha_R) * (brush_vec[b_w * index_x][b_w * index_y] / 255.f);
+							// 브러시 패턴으로 계산한 에어브러시 적용 알파값
+							float brush_rate = (255 - brush_vec[b_w * index_x][b_w * index_y]) / 255.f;
 
-							canvas.at<cv::Vec3b>(paint_y, paint_x)[0] = alpha_B;
-							canvas.at<cv::Vec3b>(paint_y, paint_x)[1] = alpha_G;
-							canvas.at<cv::Vec3b>(paint_y, paint_x)[2] = alpha_R;
-
-							//누적이 아닌 해당 단계만 칠해진 캔버스 저장용
-							step_canvas.at<cv::Vec3b>(paint_y, paint_x)[0] = alpha_B;
-							step_canvas.at<cv::Vec3b>(paint_y, paint_x)[1] = alpha_G;
-							step_canvas.at<cv::Vec3b>(paint_y, paint_x)[2] = alpha_R;
-
-							//어차피 스트로크를 구성하는 브러시가 하나니까 imsi가 필요 없다.
-							accum_height[paint_x][paint_y] += (255 - brush_vec[b_w * index_x][b_w * index_y]);
-
-
-						}
-
-					}
-
-				}
-
-
-				//cv::circle(canvas, cv::Point(new_stroke_list[u].x + MARGIN, new_stroke_list[u].y + MARGIN), layer_list[i].brush_size, cv::Scalar(alpha_H, alpha_S, alpha_V), -1);
-			}
-
-			else
-			{
-				//에어브러시를 적용하려면 스트로크 구성 픽셀들에 대해 얼마만큼의 '알파'로 칠할지 저장할 벡터가 필요하다.
-				std::vector<std::vector<float>> stroke_alpha;
-				stroke_alpha.assign(canvas.cols, std::vector<float>(canvas.rows, 0));
-
-
-				cv::Point_<float> lastDxDy(0, 0); // 지난 dx, dy
-				cv::Point_<float> present(new_stroke_list[u].x, new_stroke_list[u].y); // 현재 x,y의 위치
-				cv::Point_<float> DxDy(image_etf_dx[int(present.x + 0.5f)][int(present.y + 0.5)], image_etf_dy[int(present.x + 0.5)][int(present.y + 0.5)]); // 현재 x,y의 dx,dy
-				//0.5는 반올림
-
-				std::vector<std::vector<int>> imsi_accum_height; // 임시 벡터. 각 스트로크에서 밝기값을 저장하는 벡터. (중복 방지를 위해)
-				imsi_accum_height.assign(canvas.cols, std::vector<int>(canvas.rows, 0));
-
-				//여기 하는 중
-				cv::Mat saved_canvas = canvas.clone(); // 스트로크를 찍기 전 상황을 저장하는 캔버스. clone함수를 써 줘야 상황'만' 복제가 된다!!
-
-				int ref_color_B = reference.at<cv::Vec3b>(int(present.y + 0.5), int(present.x + 0.5))[0];
-				int ref_color_G = reference.at<cv::Vec3b>(int(present.y + 0.5), int(present.x + 0.5))[1];
-				int ref_color_R = reference.at<cv::Vec3b>(int(present.y + 0.5), int(present.x + 0.5))[2];
-				
-				//스트로크 알파 벡터 구성하고 칠하기
-				for (int k = 0; k < (layer_list[i].grid_size / layer_list[i].brush_size) * STROKE_NUMBER; k++)
-				{
-
-					int canvas_diff = 0; // 레퍼런스 - 캔버스의 색 차이 저장 변수
-					int stroke_diff = 0; // 레퍼런스 - 현재 스트로크의 색 차이 저장 변수
-
-					for (int l = 0; l < 3; l++)
-					{
-						canvas_diff += difference(canvas.at<cv::Vec3b>(int(present.y + 0.5), int(present.x + 0.5))[l], reference.at<cv::Vec3b>(int(present.y + 0.5), int(present.x + 0.5))[l]);
-					}
-
-					stroke_diff += difference(ref_color_B, reference.at<cv::Vec3b>(int(present.y + 0.5), int(present.x + 0.5))[0]);
-					stroke_diff += difference(ref_color_G, reference.at<cv::Vec3b>(int(present.y + 0.5), int(present.x + 0.5))[1]);
-					stroke_diff += difference(ref_color_R, reference.at<cv::Vec3b>(int(present.y + 0.5), int(present.x + 0.5))[2]);
-
-					if (canvas_diff < stroke_diff) // 레퍼런스-캔버스 < 레퍼런스-현재 스트로크의 색깔이면 종료.
-						break;
-
-					if (DxDy.x == 0 && DxDy.y == 0)
-						break;
-
-					if (lastDxDy.x * DxDy.x + lastDxDy.y * DxDy.y < 0)
-					{
-						DxDy.x *= -1;
-						DxDy.y *= -1;
-
-					}
-
-					if (!(getFlowVectorRK4(width, height, present.x, present.y, DxDy.x, DxDy.y, image_etf_dx, image_etf_dy)))
-						break;
-
-					int b_w = 100; // 어차피 brush image의 크기는 100*100으로 고정이므로
-
-					for (int j = 0; j < 2 * layer_list[i].brush_size; j++)
-					{
-						for (int k = 0; k < 2 * layer_list[i].brush_size; k++)
-						{
-							//일단 new_stroke_list의 좌표가 원의 중심이 되겠지.
-							//그러면 j,k는 0부터 시작하겠지만 실제론 반지름만큼 왼쪽, 위로 이동시켜준 후에 색을 찍어야 할 것 같아.
-							float index_x = j / (2.0 * layer_list[i].brush_size);
-							float index_y = k / (2.0 * layer_list[i].brush_size);
-
-							if (brush_vec[b_w * index_x][b_w * index_y] != 255)
+							//이미 저장되어있는 알파값보다 더 큰 알파값이 들어올 때만 새로 색칠한다.
+							if (stroke_alpha[paint_x][paint_y] < brush_rate)
 							{
-								int paint_x = MARGIN + int(present.x + 0.5) + (j - (layer_list[i].brush_size));
-								int paint_y = MARGIN + int(present.y + 0.5) + (k - (layer_list[i].brush_size));
+								stroke_alpha[paint_x][paint_y] = brush_rate;
 
-								if (paint_x >= canvas.cols || paint_x < 0 || paint_y < 0 || paint_y >= canvas.rows)
-									continue;
+								int saved_B = saved_canvas.at<cv::Vec3b>(paint_y, paint_x)[0];
+								int saved_G = saved_canvas.at<cv::Vec3b>(paint_y, paint_x)[1];
+								int saved_R = saved_canvas.at<cv::Vec3b>(paint_y, paint_x)[2];
 
-								// 브러시 패턴으로 계산한 에어브러시 적용 알파값
-								float brush_rate = (255 - brush_vec[b_w * index_x][b_w * index_y]) / 255.f;
+								//에어브러시 색깔
+								int brush_alpha_B = (1 - brush_rate) * saved_B + brush_rate * ref_color_B;
+								int brush_alpha_G = (1 - brush_rate) * saved_G + brush_rate * ref_color_G;
+								int brush_alpha_R = (1 - brush_rate) * saved_R + brush_rate * ref_color_R;
 
-								//이미 저장되어있는 알파값보다 더 큰 알파값이 들어올 때만 새로 색칠한다.
-								if (stroke_alpha[paint_x][paint_y] < brush_rate)
-								{
-									stroke_alpha[paint_x][paint_y] = brush_rate;
+								float brush_alpha_H, brush_alpha_S, brush_alpha_V; // 에어브러시
 
-									int saved_B = saved_canvas.at<cv::Vec3b>(paint_y, paint_x)[0];
-									int saved_G = saved_canvas.at<cv::Vec3b>(paint_y, paint_x)[1];
-									int saved_R = saved_canvas.at<cv::Vec3b>(paint_y, paint_x)[2];
+								dw_RGB2HSV(brush_alpha_R, brush_alpha_G, brush_alpha_B, brush_alpha_H, brush_alpha_S, brush_alpha_V); // 에어브러시
 
-									//에어브러시 색깔
-									int brush_alpha_B = (1 - brush_rate) * saved_B + brush_rate * ref_color_B;
-									int brush_alpha_G = (1 - brush_rate) * saved_G + brush_rate * ref_color_G;
-									int brush_alpha_R = (1 - brush_rate) * saved_R + brush_rate * ref_color_R;
+								//에어브러시
+								brush_alpha_H = random_alpha_H(brush_alpha_H);
+								brush_alpha_S = random_alpha_S(brush_alpha_S);
+								brush_alpha_V = random_alpha_V(brush_alpha_V);
 
-									float brush_alpha_H, brush_alpha_S, brush_alpha_V; // 에어브러시
+								dw_HSV2RGB(brush_alpha_H, brush_alpha_S, brush_alpha_V, brush_alpha_R, brush_alpha_G, brush_alpha_B); // 에어브러시
 
-									dw_RGB2HSV(brush_alpha_R, brush_alpha_G, brush_alpha_B, brush_alpha_H, brush_alpha_S, brush_alpha_V); // 에어브러시
+																//에어브러시 적용 O, 마카느낌 X
+								canvas.at<cv::Vec3b>(paint_y, paint_x)[0] = brush_alpha_B;
+								canvas.at<cv::Vec3b>(paint_y, paint_x)[1] = brush_alpha_G;
+								canvas.at<cv::Vec3b>(paint_y, paint_x)[2] = brush_alpha_R;
 
-									//에어브러시
-									brush_alpha_H = random_alpha_H(brush_alpha_H);
-									brush_alpha_S = random_alpha_S(brush_alpha_S);
-									brush_alpha_V = random_alpha_V(brush_alpha_V);
+								//누적이 아닌 해당 단계만 칠해진 캔버스 저장용
+								step_canvas.at<cv::Vec3b>(paint_y, paint_x)[0] = brush_alpha_B;
+								step_canvas.at<cv::Vec3b>(paint_y, paint_x)[1] = brush_alpha_G;
+								step_canvas.at<cv::Vec3b>(paint_y, paint_x)[2] = brush_alpha_R;
 
-									dw_HSV2RGB(brush_alpha_H, brush_alpha_S, brush_alpha_V, brush_alpha_R, brush_alpha_G, brush_alpha_B); // 에어브러시
+								//스트로크에 가장 큰 값 대입하기 (한 스트로크에 중복되지 않도록)
+								if (imsi_accum_height[paint_x][paint_y] < (255 - brush_vec[b_w * index_x][b_w * index_y]))
+									imsi_accum_height[paint_x][paint_y] = (255 - brush_vec[b_w * index_x][b_w * index_y]);
 
-																	//에어브러시 적용 O, 마카느낌 X
-									canvas.at<cv::Vec3b>(paint_y, paint_x)[0] = brush_alpha_B;
-									canvas.at<cv::Vec3b>(paint_y, paint_x)[1] = brush_alpha_G;
-									canvas.at<cv::Vec3b>(paint_y, paint_x)[2] = brush_alpha_R;
-
-									//누적이 아닌 해당 단계만 칠해진 캔버스 저장용
-									step_canvas.at<cv::Vec3b>(paint_y, paint_x)[0] = brush_alpha_B;
-									step_canvas.at<cv::Vec3b>(paint_y, paint_x)[1] = brush_alpha_G;
-									step_canvas.at<cv::Vec3b>(paint_y, paint_x)[2] = brush_alpha_R;
-
-									//스트로크에 가장 큰 값 대입하기 (한 스트로크에 중복되지 않도록)
-									if (imsi_accum_height[paint_x][paint_y] < (255 - brush_vec[b_w * index_x][b_w * index_y]))
-										imsi_accum_height[paint_x][paint_y] = (255 - brush_vec[b_w * index_x][b_w * index_y]);
-
-								}
-
-								else
-									continue;
-								
 							}
 
+							else
+								continue;
+
 						}
 
 					}
 
-
-					lastDxDy.x = DxDy.x;
-					lastDxDy.y = DxDy.y;
-
-					present.x += DxDy.x;
-					present.y += DxDy.y;
-
-					if (int(present.x + 0.5) >= width || int(present.y + 0.5) >= height)
-						break;
-
-					else if (int(present.x + 0.5) < 0 || int(present.y + 0.5) < 0)
-						break;
-
-					DxDy.x = image_etf_dx[int(present.x + 0.5)][int(present.y + 0.5)];
-					DxDy.y = image_etf_dy[int(present.x + 0.5)][int(present.y + 0.5)];
-
 				}
+
+
+				lastDxDy.x = DxDy.x;
+				lastDxDy.y = DxDy.y;
+
+				present.x += DxDy.x;
+				present.y += DxDy.y;
+
+				if (int(present.x + 0.5) >= width || int(present.y + 0.5) >= height)
+					break;
+
+				else if (int(present.x + 0.5) < 0 || int(present.y + 0.5) < 0)
+					break;
+
+				DxDy.x = image_etf_dx[int(present.x + 0.5)][int(present.y + 0.5)];
+				DxDy.y = image_etf_dy[int(present.x + 0.5)][int(present.y + 0.5)];
+
+			}
 				
 
-				//height_map을 나타내는 벡터에 최종적으로 값을 저장 (스트로크 끝나고 대입해야 함)
-				for (int x = 0; x < canvas.cols; x++)
+			//height_map을 나타내는 벡터에 최종적으로 값을 저장 (스트로크 끝나고 대입해야 함)
+			for (int x = 0; x < canvas.cols; x++)
+			{
+				for (int y = 0; y < canvas.rows; y++)
 				{
-					for (int y = 0; y < canvas.rows; y++)
-					{
-						accum_height[x][y] += imsi_accum_height[x][y];
-					}
+					accum_height[x][y] += imsi_accum_height[x][y];
 				}
 			}
 
 		}
-
-		//cv::Mat canvas_BGR;
 
 		std::string str = std::to_string(i);
 		str += ".jpg";
@@ -482,48 +423,49 @@ cv::Mat stroke::paint_airbrush(float T, const cv::Mat& saliency_output, cv::Mat&
 		cv::imwrite(str, canvas); // [HSV] HSV로 convert 하지 않고 중간과정을 저장할 때
 		//cv::imwrite("0.jpg", canvas_BGR); // HSV로 convert하고 중간과정을 저장할 때
 
-		std::string str2 = "step";
-		str2 += std::to_string(i);
-		str2 += ".jpg";
-		cv::imwrite(str2, step_canvas);
-
-		//높이를 쌓자!
-		cv::Mat accum_image = canvas.clone();
-		accum_image = cv::Scalar(255, 255, 255);
-		cvtColor(accum_image, accum_image, cv::COLOR_BGR2GRAY);
-
-		int max = 0; //max는 브러시가 가장 많이 쌓인 애
-
-		for (int x = 0; x < canvas.cols; x++)
+		if (option == 1)
 		{
-			for (int y = 0; y < canvas.rows; y++)
+			std::string str2 = "step";
+			str2 += std::to_string(i);
+			str2 += ".jpg";
+			cv::imwrite(str2, step_canvas);
+
+			//높이를 쌓자!
+			cv::Mat accum_image = canvas.clone();
+			accum_image = cv::Scalar(255, 255, 255);
+			cvtColor(accum_image, accum_image, cv::COLOR_BGR2GRAY);
+
+			int max = 0; //max는 브러시가 가장 많이 쌓인 애
+
+			for (int x = 0; x < canvas.cols; x++)
 			{
-				if (accum_height[x][y] > max)
-					max = accum_height[x][y];
+				for (int y = 0; y < canvas.rows; y++)
+				{
+					if (accum_height[x][y] > max)
+						max = accum_height[x][y];
 
+				}
 			}
-		}
 
-		//rate == 배열값/max (0~1사이의 값이 나온다.)
-		for (int x = 0; x < canvas.cols; x++)
-		{
-			for (int y = 0; y < canvas.rows; y++)
+			//rate == 배열값/max (0~1사이의 값이 나온다.)
+			for (int x = 0; x < canvas.cols; x++)
 			{
-				accum_image.at<uchar>(y, x) = uchar((1 - ((float)accum_height[x][y] / max)) * 255); // max일수록 까매야 하는데 흠..
+				for (int y = 0; y < canvas.rows; y++)
+				{
+					accum_image.at<uchar>(y, x) = uchar((1 - ((float)accum_height[x][y] / max)) * 255); // max일수록 까매야 하는데 흠..
 
+				}
 			}
-		}
 
-		std::string str3 = "accumulate ";
-		str3 += std::to_string(i);
-		str3 += ".jpg";
-		cv::imwrite(str3, accum_image);
+			//높이 저장 이미지
+			std::string str3 = "accumulate ";
+			str3 += std::to_string(i);
+			str3 += ".jpg";
+			cv::imwrite(str3, accum_image);
+		}
+	
 
 	}
-
-	//높이 저장 이미지
-
-
 	
 	return canvas;
 }
