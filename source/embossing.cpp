@@ -14,7 +14,7 @@ void embossing(cv::Mat & canvas, const cv::Mat & accum_image, float K_val)
 
 	//맨 왼쪽과 맨 오른쪽, 맨 위와 맨 아래의 경우는 계산할 픽셀이 없기 때문에.
 	Concurrency::parallel_for(1, width, [&](int x)
-//	for (int x = 1; x < width - 1; x++)
+	//for (int x = 1; x < width - 1; x++)
 	{
 		for (int y = 1; y < height - 1; y++)
 		{
@@ -37,21 +37,46 @@ void embossing(cv::Mat & canvas, const cv::Mat & accum_image, float K_val)
 
 			float multiply;
 
-			cv::cvtColor(canvas, canvas, cv::COLOR_BGR2HSV);
-
+			/*
 			if (inner_output >= 0)
 			{
-				int canvas_V = canvas.at<cv::Vec3b>(y, x)[2];
-				//canvas.at<cv::Vec3b>(y, x)[2] = (K_val * inner_output * canvas_V) + ((1 - K_val) * canvas_V);
-				//canvas.at<cv::Vec3b>(y, x)[2] = (K_val * inner_output * canvas_V) + canvas_V;
+				for (int l = 0; l < 3; l++)
+				{
+					float index = (K_val * inner_output * canvas.at<cv::Vec3b>(y, x)[l]) + canvas.at<cv::Vec3b>(y, x)[l];
+
+					if (index > 255)
+						canvas.at<cv::Vec3b>(y, x)[l] = 255;
+
+					else
+						canvas.at<cv::Vec3b>(y, x)[l] = (K_val * inner_output * canvas.at<cv::Vec3b>(y, x)[l]) + canvas.at<cv::Vec3b>(y, x)[l];
+				}
+
 			}
 			else
 			{
-				int canvas_V = canvas.at<cv::Vec3b>(y, x)[2];
-				canvas.at<cv::Vec3b>(y, x)[2] = (1 - K_val) * canvas_V;
+				for (int l = 0; l < 3; l++)
+				{
+					canvas.at<cv::Vec3b>(y, x)[l] = canvas.at<cv::Vec3b>(y, x)[l];
+				}
+			}
+			*/
+
+			
+			if (inner_output >= 0)
+			{
+				for (int l = 0; l < 3; l++)
+				{
+					canvas.at<cv::Vec3b>(y, x)[l] = (K_val * inner_output * canvas.at<cv::Vec3b>(y, x)[l]) + ((1 - K_val) * canvas.at<cv::Vec3b>(y, x)[l]);
+				}
+			}
+			else
+			{
+				for (int l = 0; l < 3; l++)
+				{
+					canvas.at<cv::Vec3b>(y, x)[l] = (1 - K_val) * canvas.at<cv::Vec3b>(y, x)[l];
+				}
 			}
 			
-			cv::cvtColor(canvas, canvas, cv::COLOR_HSV2BGR);
 
 		}
 	});

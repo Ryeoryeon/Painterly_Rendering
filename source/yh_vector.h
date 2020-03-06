@@ -11,9 +11,9 @@ private:
 
 public:
 
-	int inner(yh_vector v2)
+	float inner(yh_vector v2)
 	{
-		int inner_output = 0;
+		float inner_output = 0;
 		inner_output += x * v2.x;
 		inner_output += y * v2.y;
 		inner_output += z * v2.z;

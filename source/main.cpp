@@ -7,6 +7,7 @@
 #include <opencv2/saliency/saliencySpecializedClasses.hpp> // saliency를 쓰기 위해 추가해야 하는 헤더파일
 
 
+/*
 int main()
 {
 	stroke circle;
@@ -152,9 +153,10 @@ int main()
 
 	return 0;
 }
+*/
 
 //엠버싱 디버깅용 빠른 코드
-/*
+
 int main()
 {
 	cv::Mat canvas;
@@ -162,10 +164,10 @@ int main()
 	cv::Mat accum_image;
 	accum_image = cv::imread("accumulate 6.jpg", cv::IMREAD_GRAYSCALE); // 뒤에 숫자는 알아서 조절하기
 
-	embossing(canvas, accum_image, 0.5);
+	embossing(canvas, accum_image, 0.09);
 	return 0;
 }
-*/
+
 
 
 
