@@ -52,4 +52,4 @@ public:
 
 
 static yh_vector LIGHT((-1 / sqrt(3)), (-1 / sqrt(3)), (1 / sqrt(3)));
-void embossing(cv::Mat& canvas, const cv::Mat& accum_image, float K_val);
+void embossing(cv::Mat& canvas, cv::Mat& accum_image, float K_val);

@@ -45,6 +45,7 @@ public:
 };
 
 cv::Mat blurring(cv::Mat & image, double g_sigma);
+cv::Mat blurring_grayscale(cv::Mat& image, double g_sigma);
 cv::Mat Bilateral_filtering(const cv::Mat& image);
 
 int difference(int canvas_color, int reference_color);
