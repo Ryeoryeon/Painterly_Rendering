@@ -59,5 +59,3 @@ bool getFlowVectorRK4(int m_nWidth, int m_nHeight, float x, float y, float& dx, 
 
 void dw_RGB2HSV(int r, int g, int b, float& h, float& s, float& v);	//h(0:360), s(0:1), v(0:255)
 void dw_HSV2RGB(float h, float s, float v, int& r, int& g, int& b);	//h(0:360), s(0:1), v(0:255)
-
-//cv::Mat accumulate_image(int width, int height, const std::vector<std::vector<int>> & accum_height);

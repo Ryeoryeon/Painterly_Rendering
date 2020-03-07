@@ -1,6 +1,7 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
 #include "Painterly.h"
+#include "yh_vector.h"
 #include "dwLIC2.h"
 #include <vector>
 #include <random>
@@ -419,16 +420,34 @@ cv::Mat stroke::paint_airbrush(float T, const cv::Mat& saliency_output, cv::Mat&
 		std::string str = std::to_string(i);
 		str += ".jpg";
 		std::cout << str << '\n';
-		//cv::cvtColor(canvas, canvas_BGR, cv::COLOR_HSV2BGR);
-		cv::imwrite(str, canvas); // [HSV] HSV로 convert 하지 않고 중간과정을 저장할 때
-		//cv::imwrite("0.jpg", canvas_BGR); // HSV로 convert하고 중간과정을 저장할 때
+
+		//유화 느낌을 원한다면
+		cv::imwrite(str, canvas);
+
+		//수묵화 느낌을 원한다면
+		/*
+		cv::cvtColor(canvas, canvas, cv::COLOR_BGR2GRAY);
+		cv::imwrite(str, canvas);
+		cv::cvtColor(canvas, canvas, cv::COLOR_GRAY2BGR);
+		*/
 
 		if (option == 1)
 		{
 			std::string str2 = "step";
 			str2 += std::to_string(i);
 			str2 += ".jpg";
+
+			//유화 느낌을 원한다면
 			cv::imwrite(str2, step_canvas);
+
+			//수묵화 느낌을 원한다면
+			/*
+			cv::cvtColor(step_canvas, step_canvas, cv::COLOR_BGR2GRAY);
+			cv::imwrite(str2, step_canvas);
+			cv::cvtColor(step_canvas, step_canvas, cv::COLOR_GRAY2BGR);
+
+			cv::imwrite(str2, step_canvas);
+			*/
 
 			//높이를 쌓자!
 			cv::Mat accum_image = canvas.clone();
@@ -462,9 +481,20 @@ cv::Mat stroke::paint_airbrush(float T, const cv::Mat& saliency_output, cv::Mat&
 			str3 += std::to_string(i);
 			str3 += ".jpg";
 			cv::imwrite(str3, accum_image);
+
+			int layer_size = layer_list.size();
+			
+			if (i == layer_size - 1)
+			{
+				float K_val;
+				std::cout << "K값 입력 (0에 가까울수록 원래 색)";
+				std::cin >> K_val;
+
+				embossing(canvas, accum_image, K_val);
+			}
+
 		}
 	
-
 	}
 	
 	return canvas;
@@ -860,13 +890,13 @@ cv::Mat stroke::paint(float T, const cv::Mat& saliency_output, cv::Mat& canvas, 
 		std::string str = std::to_string(i);
 		str += ".jpg";
 		std::cout << str << '\n';
-		//cv::cvtColor(canvas, canvas_BGR, cv::COLOR_HSV2BGR);
-		cv::imwrite(str, canvas); // [HSV] HSV로 convert 하지 않고 중간과정을 저장할 때
-		//cv::imwrite("0.jpg", canvas_BGR); // HSV로 convert하고 중간과정을 저장할 때
+
+		cv::imwrite(str, canvas);
 
 		std::string str2 = "step";
 		str2 += std::to_string(i);
 		str2 += ".jpg";
+
 		cv::imwrite(str2, step_canvas);
 
 	}
