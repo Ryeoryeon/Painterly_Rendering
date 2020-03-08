@@ -21,9 +21,9 @@ int main()
 	if (first_choice == 1)
 	{
 		cv::Mat canvas;
-		canvas = cv::imread("8.jpg");
+		canvas = cv::imread("final.jpg");
 		cv::Mat accum_image;
-		accum_image = cv::imread("accumulate 8.jpg", cv::IMREAD_GRAYSCALE); // 뒤에 숫자는 알아서 조절하기
+		accum_image = cv::imread("final_accum.jpg", cv::IMREAD_GRAYSCALE); // 뒤에 숫자는 알아서 조절하기
 
 		embossing(canvas, accum_image, 0.2);
 		return 0;
@@ -58,17 +58,17 @@ int main()
 			}
 		}
 
-		std::string file_name = "duck_2.jpg";
+		//std::string file_name = "duck_2.jpg";
 		//std::string file_name = "lenna.jpg";
-		//std::string file_name = "Cat.jpg";
+		std::string file_name = "Cat.jpg";
 		//std::string file_name = "Cat_2.jpg";
 
 		cv::Mat image = cv::imread(file_name);
 		cv::Mat blur_image = cv::imread(file_name);
 
-		std::string etf_name = "duck_2.etf";
+		//std::string etf_name = "duck_2.etf";
 		//std::string etf_name = "lenna.etf";
-		//std::string etf_name = "Cat.etf";
+		std::string etf_name = "Cat.etf";
 		//std::string etf_name = "Cat_2.etf";
 
 		const char* etf_name_char = etf_name.c_str();

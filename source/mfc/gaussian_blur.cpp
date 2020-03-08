@@ -1,3 +1,4 @@
+#include "pch.h"
 #include <iostream>
 #include <vector>
 #include "opencv2/opencv.hpp"
@@ -57,7 +58,7 @@ cv::Mat blurring(cv::Mat & image, double g_sigma)
         }
     }
 
-	return blur_image;
+    return blur_image;
 }
 
 cv::Mat blurring_grayscale(cv::Mat& image, double g_sigma)
