@@ -16,4 +16,6 @@
 #include "Painterly.h"
 #include <vector>
 #include <cmath>
+
+#include <random>
 #endif //PCH_H

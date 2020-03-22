@@ -13,7 +13,7 @@ IMPLEMENT_DYNAMIC(yh_dialog, CDialogEx)
 
 yh_dialog::yh_dialog(CWnd* pParent /*=nullptr*/)
 	: CDialogEx(IDD_DIALOG1, pParent)
-	, input_layer_size(7), radioMode(0)
+	, input_layer_size(9), radioMode(0)
 {
 
 }

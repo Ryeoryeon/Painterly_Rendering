@@ -7,6 +7,7 @@
 #include "yh_dialog.h"
 #include "yh_dialog_2.h"
 #include "yh_dialog_3.h"
+#include "yh_saliency.h"
 
 #include "yh_vector.h"
 #include "dwLIC2.h"
@@ -169,11 +170,34 @@ int main()
                 exit(1);
             }
 
+            //saliency 외부입력 O/X 코드
+            yh_saliency dlg_saliency;
 
             cv::Mat saliency_output;
 
-            cv::saliency::StaticSaliencySpectralResidual Sal;
-            Sal.computeSaliency(image, saliency_output);
+            if (IDOK == dlg_saliency.DoModal())
+            {
+                CFileDialog fileDlg5(TRUE, NULL, NULL, OFN_HIDEREADONLY, szFilter3);
+                fileDlg5.m_ofn.lpstrTitle = _T("Load saliency Image");
+
+                if (IDOK != fileDlg5.DoModal())
+                {
+                    wprintf(L"파일을 선택하지 않았습니다.\n");
+                    nRetCode = 1;
+                    return nRetCode;
+                }
+
+                //USES_CONVERSION;
+                saliency_output = cv::imread(W2A(fileDlg5.GetPathName()));
+
+            }
+
+            else if (IDOK != dlg_saliency.DoModal())
+            {
+                cv::saliency::StaticSaliencySpectralResidual Sal;
+                Sal.computeSaliency(image, saliency_output);
+            }
+
 
             //레퍼런스 이미지 블러링 (대화상자1)
             cv::Mat blur_image = image.clone();
@@ -208,7 +232,7 @@ int main()
 
                 else if(blur_choice == 1)
                 {
-                    blur_image = Bilateral_filtering(image); // 갑자기 이 다음부터 이상해짐
+                    blur_image = Bilateral_filtering(image);
                 }
             }
 

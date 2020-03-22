@@ -7,7 +7,6 @@
 #include <opencv2/saliency/saliencySpecializedClasses.hpp> // saliency를 쓰기 위해 추가해야 하는 헤더파일
 
 
-
 int main()
 {
 	int first_choice = 0;
@@ -96,11 +95,9 @@ int main()
 		cv::saliency::StaticSaliencySpectralResidual Sal;
 		Sal.computeSaliency(image, saliency_output);
 
-		//saliency 이미지를 보고 싶다면 각주 해제하기
 		if (op == 1)
 		{
-			cv::imshow("f", saliency_output);
-			cv::waitKey(0);
+			save_saliency(saliency_output);
 		}
 
 		float* buffer = new float[2 * width * height]; // 벡터로 하니까 안 된다.
