@@ -20,11 +20,11 @@ int main()
 	if (first_choice == 1)
 	{
 		cv::Mat canvas;
-		canvas = cv::imread("final.jpg");
+		canvas = cv::imread("6.jpg");
 		cv::Mat accum_image;
-		accum_image = cv::imread("final_accum.jpg", cv::IMREAD_GRAYSCALE); // 뒤에 숫자는 알아서 조절하기
+		accum_image = cv::imread("accumulate 6.jpg", cv::IMREAD_GRAYSCALE); // 뒤에 숫자는 알아서 조절하기
 
-		embossing(canvas, accum_image, 0.2);
+		embossing(canvas, accum_image, 0.15);
 		return 0;
 	}
 
@@ -38,10 +38,14 @@ int main()
 		circle.put_option(op);
 
 		//cv::Mat brush = cv::imread("airbrush.png", cv::IMREAD_GRAYSCALE);
-		cv::Mat brush = cv::imread("simsim.png", cv::IMREAD_GRAYSCALE);
+		//cv::Mat brush = cv::imread("simsim.png", cv::IMREAD_GRAYSCALE);
+		//cv::Mat brush = cv::imread("new_3.png", cv::IMREAD_GRAYSCALE);
 		//cv::Mat brush = cv::imread("simsim_2.jpg", cv::IMREAD_GRAYSCALE);
 		//cv::Mat brush = cv::imread("airbrush_3.png", cv::IMREAD_GRAYSCALE);
 		//cv::Mat brush = cv::imread("rough_brush.png", cv::IMREAD_GRAYSCALE);
+		//cv::Mat brush = cv::imread("nonalpha.png", cv::IMREAD_GRAYSCALE);
+		//cv::Mat brush = cv::imread("gradient_2.png", cv::IMREAD_GRAYSCALE);
+		cv::Mat brush = cv::imread("watercolor.png", cv::IMREAD_GRAYSCALE);
 
 		int b_w = brush.cols;
 
@@ -57,17 +61,21 @@ int main()
 			}
 		}
 
+		//std::string file_name = "white_rabbit.jpg";
 		//std::string file_name = "duck_2.jpg";
-		//std::string file_name = "lenna.jpg";
-		std::string file_name = "Cat.jpg";
+		//std::string file_name = "woman_2.jpg";
+		std::string file_name = "ballet_2.jpg";
+		//std::string file_name = "Cat.jpg";
 		//std::string file_name = "Cat_2.jpg";
 
 		cv::Mat image = cv::imread(file_name);
 		cv::Mat blur_image = cv::imread(file_name);
 
+		//std::string etf_name = "white_rabbit.etf";
 		//std::string etf_name = "duck_2.etf";
-		//std::string etf_name = "lenna.etf";
-		std::string etf_name = "Cat.etf";
+		//std::string etf_name = "woman_2.etf";
+		std::string etf_name = "ballet_2.etf";
+		//std::string etf_name = "Cat.etf";
 		//std::string etf_name = "Cat_2.etf";
 
 		const char* etf_name_char = etf_name.c_str();
@@ -128,6 +136,7 @@ int main()
 		std::cout << "레퍼런스 이미지 선택하기" << '\n';
 		std::cout << "1번 : Gaussian blurring" << '\n';
 		std::cout << "2번 : Bilateral filtering" << '\n';
+		std::cout << "블러링 하고 싶지 않으시면 다른 번호를 선택해 주세요." << '\n';
 
 		int choice;
 		std::cin >> choice;
@@ -138,12 +147,7 @@ int main()
 		else if (choice == 2)
 			blur_image = Bilateral_filtering(image);
 
-
-		else
-		{
-			std::cout << "잘못 입력하셨습니다." << '\n';
-			return 1;
-		}
+		cv::imwrite("20200323_b.png", blur_image);
 
 		int layer_num;
 		std::cout << "레이어의 개수(브러시의 개수) 입력하기 :";
@@ -152,7 +156,7 @@ int main()
 
 		circle.layer_list = circle.Painterly_initialize();
 
-		float T = 0.1;
+		float T = 0.2;
 		canvas = circle.paint_airbrush(T, saliency_output, canvas, blur_image, brush_vec, circle.layer_list, image_etf_dx, image_etf_dy);
 
 		return 0;

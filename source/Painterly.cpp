@@ -202,12 +202,24 @@ cv::Mat stroke::paint_airbrush(float T, const cv::Mat& saliency_output, cv::Mat&
 					average_brightness /= (float)pixel_number;
 				}
 
+				/*
 				if (i >= (layer_size * (2 / 3.f))) // 후반 레이어
 				{
 					// saliency_image에서 그 영역의 평균 밝기가 높을수록 T에 관대하게 작용해야 한다.
 					// average_brightness가 255라면 area_error <=0 일 때만 칠하지 않는다.
 					// 0이라면 다 안칠해짐.
 					if (area_error <= (((1 / 255.f) * (255 - average_brightness)) * T))
+					{
+						continue;
+					}
+				}
+				*/
+				if (i >= (layer_size * (2 / 3.f))) // 후반 레이어
+				{
+					// saliency_image에서 그 영역의 평균 밝기가 높을수록 T에 관대하게 작용해야 한다.
+					// average_brightness가 255라면 area_error <=0 일 때만 칠하지 않는다.
+					// 0이라면 다 안칠해짐.
+					if (area_error <= (1- average_brightness) * T)
 					{
 						continue;
 					}
@@ -517,7 +529,6 @@ cv::Mat stroke::paint_airbrush(float T, const cv::Mat& saliency_output, cv::Mat&
 			cv::imwrite(str3, accum_image);
 
 			int layer_size = layer_list.size();
-			
 			if (i == layer_size - 1)
 			{
 				float K_val;
@@ -525,6 +536,7 @@ cv::Mat stroke::paint_airbrush(float T, const cv::Mat& saliency_output, cv::Mat&
 				std::cin >> K_val;
 
 				embossing(canvas, accum_image, K_val);
+
 			}
 
 		}

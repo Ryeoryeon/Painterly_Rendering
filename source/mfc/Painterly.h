@@ -4,9 +4,9 @@
 
 static int MARGIN = 30;
 static int STROKE_NUMBER = 5;
-static float ALPHA = 0.7f;
-static float GAUSSIAN_SIGMA = 3;
-static int GAUSSIAN_SIZE = 7;
+static float ALPHA = 0.3f;
+static float GAUSSIAN_SIGMA = 3; //레퍼런스 이미지 블러링에 쓰이는 값(height map에는 X)
+static int GAUSSIAN_SIZE = 3;
 
 struct layer
 {

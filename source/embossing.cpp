@@ -16,10 +16,8 @@ void embossing(cv::Mat & canvas, cv::Mat & accum_image, float K_val)
 	std::cin >> option;
 
 	if (option == 1)
-		blurring_grayscale(accum_image, 1.5);
-
-	cv::imshow("f", accum_image);
-	cv::waitKey(0);
+		accum_image = blurring_grayscale(accum_image, 1.0);
+	
 
 
 	//맨 왼쪽과 맨 오른쪽, 맨 위와 맨 아래의 경우는 계산할 픽셀이 없기 때문에.

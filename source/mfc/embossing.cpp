@@ -24,7 +24,7 @@ void embossing(cv::Mat & canvas, cv::Mat & accum_image, float K_val)
 
 	if (option == 1)
 	{
-		blurring_grayscale(accum_image, 1.5);
+		accum_image = blurring_grayscale(accum_image, 1.0);
 		cv::imwrite("blurred_accum_image.jpg", accum_image);
 	}
 

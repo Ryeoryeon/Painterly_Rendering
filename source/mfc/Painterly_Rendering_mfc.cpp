@@ -234,6 +234,9 @@ int main()
                 {
                     blur_image = Bilateral_filtering(image);
                 }
+
+                cv::imwrite("200324_blur.png", blur_image);
+
             }
 
             else if (IDOK != dlg.DoModal())

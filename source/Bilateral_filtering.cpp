@@ -14,7 +14,7 @@ Mat Bilateral_filtering(const Mat &image)
     int width = image.cols;
     int height = image.rows;
 
-    int size = GAUSSIAN_SIZE;
+    int size = GAUSSIAN_SIZE + 4;
     double sigma = 17.5;
     double sigma_b = 9.5;
     int kernel_width = (size - 1) / 2;
@@ -83,6 +83,11 @@ Mat Bilateral_filtering(const Mat &image)
             bilateral_image.at<cv::Vec3b>(y, x)[2] = (R_blur / G_sum);
         }
     }
+
+    /*
+        cv::imshow("b", bilateral_image);
+        cv::waitKey(0);
+    */
 
     return bilateral_image;
 }
